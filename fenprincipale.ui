@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>FenPrincipale</class>
+ <widget class="QMainWindow" name="FenPrincipale">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>571</width>
+    <height>355</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>FenPrincipale</string>
+  </property>
+  <widget class="QWidget" name="centralWidget">
+   <layout class="QHBoxLayout" name="horizontalLayout_2">
+    <item>
+     <layout class="QVBoxLayout" name="verticalLayout">
+      <item>
+       <widget class="QsciScintilla" name="zoneTexte">
+        <property name="toolTip">
+         <string/>
+        </property>
+        <property name="whatsThis">
+         <string/>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout">
+        <item>
+         <widget class="QPushButton" name="bt_tester">
+          <property name="text">
+           <string>Tester</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="bt_effacer">
+          <property name="text">
+           <string>Effacer tout</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="bt_quitter">
+          <property name="text">
+           <string>Quitter</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <widget class="QListWidget" name="affListeVar">
+      <property name="maximumSize">
+       <size>
+        <width>200</width>
+        <height>16777215</height>
+       </size>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menuBar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>571</width>
+     <height>19</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuMenu">
+    <property name="title">
+     <string>Menu</string>
+    </property>
+    <addaction name="actionOptions"/>
+    <addaction name="separator"/>
+    <addaction name="actionQuitter"/>
+   </widget>
+   <addaction name="menuMenu"/>
+  </widget>
+  <widget class="QToolBar" name="mainToolBar">
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+  </widget>
+  <widget class="QStatusBar" name="statusBar"/>
+  <action name="actionOptions">
+   <property name="text">
+    <string>Options</string>
+   </property>
+  </action>
+  <action name="actionQuitter">
+   <property name="text">
+    <string>Quitter</string>
+   </property>
+  </action>
+ </widget>
+ <layoutdefault spacing="6" margin="11"/>
+ <customwidgets>
+  <customwidget>
+   <class>QsciScintilla</class>
+   <extends>QFrame</extends>
+   <header>Qsci/qsciscintilla.h</header>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>bt_quitter</sender>
+   <signal>clicked()</signal>
+   <receiver>FenPrincipale</receiver>
+   <slot>close()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>322</x>
+     <y>319</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>253</x>
+     <y>162</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>bt_tester</sender>
+   <signal>clicked()</signal>
+   <receiver>FenPrincipale</receiver>
+   <slot>tester()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>104</x>
+     <y>316</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>134</x>
+     <y>303</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>bt_effacer</sender>
+   <signal>clicked()</signal>
+   <receiver>zoneTexte</receiver>
+   <slot>clear()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>165</x>
+     <y>316</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>214</x>
+     <y>241</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>bt_effacer</sender>
+   <signal>clicked()</signal>
+   <receiver>affListeVar</receiver>
+   <slot>clear()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>177</x>
+     <y>321</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>415</x>
+     <y>277</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <slots>
+  <slot>tester()</slot>
+ </slots>
+</ui>

@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>fenoptions</class>
+ <widget class="QWidget" name="fenoptions">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>630</width>
+    <height>443</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="QTabWidget" name="onglets">
+     <property name="tabPosition">
+      <enum>QTabWidget::North</enum>
+     </property>
+     <property name="currentIndex">
+      <number>0</number>
+     </property>
+     <widget class="QWidget" name="tab_langage">
+      <attribute name="title">
+       <string>Langage</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_2">
+       <item>
+        <widget class="QTableView" name="RegExpView">
+         <property name="alternatingRowColors">
+          <bool>false</bool>
+         </property>
+         <property name="selectionMode">
+          <enum>QAbstractItemView::SingleSelection</enum>
+         </property>
+         <property name="selectionBehavior">
+          <enum>QAbstractItemView::SelectRows</enum>
+         </property>
+         <property name="cornerButtonEnabled">
+          <bool>false</bool>
+         </property>
+         <attribute name="horizontalHeaderVisible">
+          <bool>false</bool>
+         </attribute>
+         <attribute name="horizontalHeaderCascadingSectionResizes">
+          <bool>true</bool>
+         </attribute>
+         <attribute name="horizontalHeaderStretchLastSection">
+          <bool>true</bool>
+         </attribute>
+         <attribute name="verticalHeaderVisible">
+          <bool>false</bool>
+         </attribute>
+         <attribute name="verticalHeaderHighlightSections">
+          <bool>false</bool>
+         </attribute>
+         <attribute name="verticalHeaderStretchLastSection">
+          <bool>false</bool>
+         </attribute>
+        </widget>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout">
+         <item>
+          <widget class="QPushButton" name="recupDepuisFichier">
+           <property name="text">
+            <string>Récupérer les données depuis le fichier</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="sauverDonnees">
+           <property name="text">
+            <string>Sauver les données dans le fichier</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <widget class="QPushButton" name="initValDef">
+         <property name="text">
+          <string>Réinitialiser les valeurs par défaut</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tab_interface">
+      <attribute name="title">
+       <string>Interface</string>
+      </attribute>
+     </widget>
+    </widget>
+   </item>
+   <item>
+    <widget class="QDialogButtonBox" name="boutonsQuitter">
+     <property name="standardButtons">
+      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="vidageVar">
+     <property name="text">
+      <string>TextLabel</string>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>boutonsQuitter</sender>
+   <signal>rejected()</signal>
+   <receiver>fenoptions</receiver>
+   <slot>close()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>571</x>
+     <y>427</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>418</x>
+     <y>410</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>recupDepuisFichier</sender>
+   <signal>clicked()</signal>
+   <receiver>fenoptions</receiver>
+   <slot>affVar()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>179</x>
+     <y>393</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>361</x>
+     <y>410</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>sauverDonnees</sender>
+   <signal>clicked()</signal>
+   <receiver>fenoptions</receiver>
+   <slot>sauveParam()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>497</x>
+     <y>391</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>626</x>
+     <y>372</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <slots>
+  <slot>affVar()</slot>
+  <slot>sauveParam()</slot>
+ </slots>
+</ui>
