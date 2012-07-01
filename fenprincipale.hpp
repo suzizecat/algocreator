@@ -7,6 +7,7 @@
 #include <QInputDialog>
 #include <Qsci/qsciapis.h>
 #include <Qsci/qscilexercpp.h>
+#include "qscilexeralgo.hpp"
 #include "fenoptions.hpp"
 #include "ui_fenprincipale.h"
 

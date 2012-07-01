@@ -12,10 +12,12 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
         fenprincipale.cpp \
-    fenoptions.cpp
+    fenoptions.cpp \
+    qscilexeralgo.cpp
 
 HEADERS  +=  fenprincipale.hpp \
-    fenoptions.hpp
+    fenoptions.hpp \
+    qscilexeralgo.hpp
 
 FORMS    += fenprincipale.ui \
     fenoptions.ui
