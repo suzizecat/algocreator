@@ -195,7 +195,7 @@ void FenPrincipale::tester()
                 //On se replace au début de la boucle, à TANT QUE ... FAIRE
                 //Ainsi, si on doit sauter la boucle, on la saute et on remet les variables à -1
                 i=pos_origBoucle;
-                z++;
+
 
             }
         }
