@@ -51,7 +51,11 @@ protected:
     QRegExp rxRecupValListe;    //Regex : Récupération d'une valeur d'une liste
     QRegExp rxRecupSaisie;
     QRegExp rxCondition;        //Regex : Definition d'une condition
-    QRegExp rxBoucle;           //Regex : Définition d'une boucle
+    QRegExp rxBoucle;           //Regex : Définition d'une boucle type <while ...>
+    QRegExp rxBoucle2;          //Regex : Definition d'une boucle type <do ... while>
+
+
+    bool dansBoucle2;
 
     QString retirerGuillemets(QString);
     QString execOp(QString);
@@ -62,7 +66,6 @@ protected:
 
     bool modSaisie(QString);
 
-
     bool modVarOpSurSoisMeme(QString);
     bool modListe(QString, bool=true);
     bool modListe(QString,int=0 , QVariant = QVariant(), bool=true);
@@ -71,6 +74,7 @@ protected:
 
     int execCondition(QString);
     int execBoucle(QString);
+
 
  public slots :
     void tester();

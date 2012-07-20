@@ -65,16 +65,12 @@ FenPrincipale::FenPrincipale(QMainWindow *parent) : QMainWindow(parent)
     rxVarOpSurSoisMeme = QRegExp(param.value("rxModOpSMM").toString());
     rxCondition = QRegExp(param.value("rxStrCondition").toString());
     rxBoucle = QRegExp(param.value("rxStrBoucle").toString());
+    rxBoucle2 =  QRegExp(param.value("rxStrBoucle2").toString());
 
     param.endGroup();
-    //Lexer obligatoire
-    //Le C++ est le moins gênant
-    //*
+
     QsciLexerAlgo *lexer= new QsciLexerAlgo();
-    //*/
-    /*
-    QsciLexerCPP *lexer= new QsciLexerCPP();
-    //*/
+
     // C'est mieux avec une police de charactère...
     lexer->setFont(QFont("Monospace",10));
     zoneTexte->setLexer(lexer);
@@ -124,6 +120,7 @@ void FenPrincipale::tester()
 
     int pos_boucle = -1;    // Position de la fin d'une boucle
     int pos_origBoucle = -1;// Position du début d'une boucle
+    dansBoucle2= false;
 
 
     QString contenu = zoneTexte->text(); //On récupère l'algorithme
@@ -158,6 +155,16 @@ void FenPrincipale::tester()
     rx.setPattern("saisir");
     contenu.replace(rx,QString("SAISIR"));
 
+    rx.setPattern("jusqu[ ']a ce");
+    contenu.replace(rx,QString("JUSQU A CE"));
+
+    rx.setPattern("repeter");
+    contenu.replace(rx,QString("REPETER"));
+
+    rx.setPattern("debug");
+    contenu.replace(rx,QString("DEBUG"));
+
+
     zoneTexte->setText(contenu); //On affiche l'Algorithme avec les mots en majuscules
 
     //On créé une variable nombre que l'utilisateur ne verra pas.
@@ -174,8 +181,8 @@ void FenPrincipale::tester()
 
 
 
-    //########################################
-    //Recherches des definitions des variables
+    // ########################################
+    // Recherches des definitions des variables
 
     for (int i=0; i<Lignes.length();i++)
     {
@@ -188,6 +195,8 @@ void FenPrincipale::tester()
                 //On se replace au début de la boucle, à TANT QUE ... FAIRE
                 //Ainsi, si on doit sauter la boucle, on la saute et on remet les variables à -1
                 i=pos_origBoucle;
+                z++;
+
             }
         }
 
@@ -287,77 +296,98 @@ void FenPrincipale::tester()
         else if(execBoucle(Lignes[i]) == 0)
         {
 
-            // On remet à -1 les variables pour ne pas refaire une précédente boucle
-            pos_boucle = -1;
-            pos_origBoucle = -1;
-
-
-            pos=i+1;            // On prend la position +1 ( on saute la ligne définissant la boucle
-
-            niveau_condition=1; //Le niveau correspond au nombre de condition dans lesquelles nous sommes rentrés
-            //Celui-ci est à 1 Pour la condition primaire
-            //Et atteint 0 quand on sort de cette condition.
-
-            while (niveau_condition > 0 && pos < Lignes.count())
+            //Le traitement des boucles "REPETER" est inversé par rapport aux autres, ici on reboucle
+            if(dansBoucle2)
             {
-
-                if(rxCondition.indexIn(Lignes[pos]) != -1)
+                if(pos_boucle == -1 )
                 {
-                    niveau_condition ++; //Si on entre dans une autre condition, on augment le niveau
+                    pos_boucle = i+1;
                 }
-                if(rxBoucle.indexIn(Lignes[pos]) != -1)
-                {
-                    niveau_condition ++; //Si on entre dans une autre boucle, on augment le niveau
-                }
-                else if (QRegExp("FIN").indexIn(Lignes[pos]) != -1)
-                {
-                    niveau_condition --;    //Si on sort d'une condition, on baisse le niveau
-                    // Si on était dans la condition principale, on en sort
-                }
-
-                pos++; // On passe à la ligne suivante
             }
+            // On remet à -1 les variables pour ne pas refaire une précédente boucle
+            else
+            {
+                pos_boucle = -1;
+                pos_origBoucle = -1;
+                pos=i+1;            // On prend la position +1 ( on saute la ligne définissant la boucle
 
-            i = pos-1; //Comme l'incrémentation se fait à la fin, il faut soustraire 1 pour avoir la bonne ligne
+                niveau_condition=1; //Le niveau correspond au nombre de condition dans lesquelles nous sommes rentrés
+                //Celui-ci est à 1 Pour la condition primaire
+                //Et atteint 0 quand on sort de cette condition.
+
+                while (niveau_condition > 0 && pos < Lignes.count())
+                {
+
+                    if(rxCondition.indexIn(Lignes[pos]) != -1)
+                    {
+                        niveau_condition ++; //Si on entre dans une autre condition, on augment le niveau
+                    }
+                    if(rxBoucle.indexIn(Lignes[pos]) != -1)
+                    {
+                        niveau_condition ++; //Si on entre dans une autre boucle, on augment le niveau
+                    }
+                    else if (QRegExp("FIN").indexIn(Lignes[pos]) != -1)
+                    {
+                        niveau_condition --;    //Si on sort d'une condition, on baisse le niveau
+                        // Si on était dans la condition principale, on en sort
+                    }
+
+                    pos++; // On passe à la ligne suivante
+                }
+
+                i = pos-1; //Comme l'incrémentation se fait à la fin, il faut soustraire 1 pour avoir la bonne ligne
+            }
         }
 
         else if(execBoucle(Lignes[i]) == 1) // Si on entre dans une boucle à executer,
         {
-            if(pos_origBoucle == -1)
+            //Le traitement des boucles "REPETER" est inversé par rapport aux autres, ici on sort
+            if(dansBoucle2)
             {
+                dansBoucle2 = false;
+                pos_boucle = -1;
+                pos_origBoucle = -1;
 
-                pos_origBoucle=i; // Si on était pas dans une boucle, on prend la valeur de départ
-                // ATTENTION : Ne permet qu'une boucle à la fois
+
             }
-
-            pos=i; // On prend la position
-
-            niveau_condition=1; //Le niveau correspond au nombre de condition dans lesquelles nous sommes rentrés
-            //Celui-ci est à 1 Pour la condition primaire
-            //Et atteint 0 quand on sort de cette condition.
-
-            // On va parcourir l'algorithme jusqu'à trouver la fin de la boucle
-            while (niveau_condition > 0 && pos < Lignes.count())
+            else
             {
+                if(pos_origBoucle == -1)
+                {
+
+                    pos_origBoucle=i; // Si on était pas dans une boucle, on prend la valeur de départ
+                    // ATTENTION : Ne permet qu'une boucle à la fois
+                }
+
+                pos=i; // On prend la position
+
+                niveau_condition=1; //Le niveau correspond au nombre de condition dans lesquelles nous sommes rentrés
+                //Celui-ci est à 1 Pour la condition primaire
+                //Et atteint 0 qu}and on sort de cette condition.
+
+                // On va parcourir l'algorithme jusqu'à trouver la fin de la boucle
+                while (niveau_condition > 0 && pos < Lignes.count())
+                {
 
 
-                if(rxCondition.indexIn(Lignes[pos]) != -1)
-                {
-                    niveau_condition ++; //Si on entre dans une autre condition, on augment le niveau
+                    if(rxCondition.indexIn(Lignes[pos]) != -1)
+                    {
+                        niveau_condition ++; //Si on entre dans une autre condition, on augment le niveau
+                    }
+                    if(rxBoucle.indexIn(Lignes[pos]) != -1)
+                    {
+                        niveau_condition ++; //Si on entre dans une autre boucle, on augment le niveau
+                    }
+                    else if (QRegExp("FIN").indexIn(Lignes[pos]) != -1)
+                    {// On prend la position
+                        niveau_condition --;    //Si on sort d'une condition, on baisse le niveau
+                        // Si on était dans la condition principale, on en sort
+                    }
+                    pos++; // On passe à la ligne suivante
                 }
-                if(rxBoucle.indexIn(Lignes[pos]) != -1)
-                {
-                    niveau_condition ++; //Si on entre dans une autre boucle, on augment le niveau
-                }
-                else if (QRegExp("FIN").indexIn(Lignes[pos]) != -1)
-                {// On prend la position
-                    niveau_condition --;    //Si on sort d'une condition, on baisse le niveau
-                    // Si on était dans la condition principale, on en sort
-                }
-                pos++; // On passe à la ligne suivante
+                pos--;
+                pos_boucle=pos;
             }
-            pos--;
-            pos_boucle=pos;
             //Comme l'incrémentation se fait à la fin, il faut soustraire 1 pour avoir la bonne ligne
         }
 
@@ -367,6 +397,29 @@ void FenPrincipale::tester()
         else if(modVarOpSurSoisMeme(Lignes[i])){} //Opération sur soi-meme
         else if(modListe(Lignes[i],true)){}  //Modifications d'une valeur d'une liste
         else if(modSaisie(Lignes[i])){}      //Saisie d'une valeur
+        else if(QRegExp("REPETER").indexIn(Lignes[i]) != -1 )
+        {
+            if( ! dansBoucle2)
+            {
+                dansBoucle2 = true;
+                pos_origBoucle = i;
+            }
+
+        }
+        else if(QRegExp("DEBUG").indexIn(Lignes[i]) != -1)
+        {
+            QString msg;
+
+            msg += "--Variables--\n";
+            msg += "posOrig : "+ QVariant(pos_origBoucle).toString()+ "\n";
+            msg += "posFin : "+ QVariant(pos_boucle).toString()+ "\n";
+            msg += "dansBoucle2 : "+ QVariant(dansBoucle2).toString()+ "\n";
+
+
+            QMessageBox::information(this,"Informations de Debug", msg);
+
+
+        }
     }
 
 
@@ -401,10 +454,10 @@ void FenPrincipale::tester()
         affListeVar->addItem(QString("LISTE " + LsVar.at(i) + " =  [" + valListe + "]"));
     }
     //Pratique pour les tests
-    //    for (int i = 0 ; i < Lignes.size() ; i++)
-    //    {
-    //        affListeVar->addItem(QString(Lignes.at(i) ));
-    //    }
+    //        for (int i = 0 ; i < Lignes.size() ; i++)
+    //        {
+    //            affListeVar->addItem(QString(Lignes.at(i) ));
+    //        }
 }
 
 
@@ -1260,141 +1313,162 @@ int FenPrincipale::execBoucle(QString ligne)
     /*
                ################################
                Si retour = -1, pas de boucle
-               Si retour = 0, condition fausse
-               Si retour = 1, condition vraie
+               Si retour = 0 , condition fausse
+               Si retour = 1 , Boucle 1
                ################################
-            */
+     */
     int res = -1;
-    if (rxBoucle.indexIn(ligne) != -1)
+    QString var;
+    QString listeVar;
+    QString indiceVar;
+    QString signe;
+    QString comp;
+    QString listeComp;
+    QString indiceListeComp;
+    if (rxBoucle.indexIn(ligne) != -1 && ! dansBoucle2  )
     {
 
-        QString var = rxBoucle.capturedTexts()[1];
-        QString listeVar = rxBoucle.capturedTexts()[2];
-        QString indiceVar = rxBoucle.capturedTexts()[3];
-        QString signe = rxBoucle.capturedTexts()[4];
-        QString comp = rxBoucle.capturedTexts()[5];
-        QString listeComp = rxBoucle.capturedTexts()[6];
-        QString indiceListeComp = rxBoucle.capturedTexts()[7];
+        var = rxBoucle.capturedTexts()[1];
+        listeVar = rxBoucle.capturedTexts()[2];
+        indiceVar = rxBoucle.capturedTexts()[3];
+        signe = rxBoucle.capturedTexts()[4];
+        comp = rxBoucle.capturedTexts()[5];
+        listeComp = rxBoucle.capturedTexts()[6];
+        indiceListeComp = rxBoucle.capturedTexts()[7];
 
+    }
+    else if (rxBoucle2.indexIn(ligne) != -1 && dansBoucle2 )
+    {
+        var = rxBoucle2.capturedTexts()[1];
+        listeVar = rxBoucle2.capturedTexts()[2];
+        indiceVar = rxBoucle2.capturedTexts()[3];
+        signe = rxBoucle2.capturedTexts()[4];
+        comp = rxBoucle2.capturedTexts()[5];
+        listeComp = rxBoucle2.capturedTexts()[6];
+        indiceListeComp = rxBoucle2.capturedTexts()[7];
+    }
+    else
+    {
+        return -1;
+    }
+    res=0;
+    if (signe == "==")
+    {
 
-        res=0;
-        if (signe == "==")
+        if(QRegExp("[()0-9+\\-/.*a-zA-Z_]+").exactMatch(comp))
         {
-
-            if(QRegExp("[()0-9+\\-/.*a-zA-Z_]+").exactMatch(comp))
+            if(NbVar.contains(var))
             {
-                if(NbVar.contains(var))
-                {
 
-                    if(NbVal[NbVar.indexOf(var)].toDouble() == QVariant(execOp(comp)).toDouble())
-                    {
-                        res= 1;
-                    }
-                    else
-                    {
-                        res= 0;
-                    }
-                }
-                else if(QRegExp(def_rxValListe).exactMatch(var))
+                if(NbVal[NbVar.indexOf(var)].toDouble() == QVariant(execOp(comp)).toDouble())
                 {
-                    if(recupValListe(var) == QVariant(execOp(comp)))
-                    { res= 1;}
-                    else
-                    { res= 0;}
+                    res= 1;
                 }
-                else if(TxVar.contains(var))
+                else
                 {
-                    if(TxVal[TxVar.indexOf(var)] == QVariant(execOp(comp)))
-                    { res= 1;}
-                    else
-                    {res= 0;}
+                    res= 0;
                 }
             }
-
-        }
-        else if (signe == "!=")
-        {
-            if(QRegExp("[()0-9+\\-/.*a-zA-Z_]+").exactMatch(comp))
+            else if(QRegExp(def_rxValListe).exactMatch(var))
             {
-                if(NbVar.contains(var))
-                {
-                    if(NbVal[NbVar.indexOf(var)] != QVariant(execOp(comp)))
-                        return 1;
-                    else
-                        return 0;
-                }
-                else if(QRegExp(def_rxValListe).exactMatch(var))
-                {
-                    if(recupValListe(var) != QVariant(execOp(comp)))
-                        return 1;
-                    else
-                        return 0;
-                }
-                else if(TxVar.contains(var))
-                {
-                    if(TxVal[TxVar.indexOf(var)] != QVariant(execOp(comp)))
-                        return 1;
-                    else
-                        return 0;
-                }
-
+                if(recupValListe(var) == QVariant(execOp(comp)))
+                { res= 1;}
+                else
+                { res= 0;}
             }
-
-        }
-        else if (signe == "<=")
-        {
-            if(QRegExp("[()0-9+\\-/.*a-zA-Z_]+").exactMatch(comp))
+            else if(TxVar.contains(var))
             {
-                if(NbVar.contains(var))
-                {
-                    if(NbVal[NbVar.indexOf(var)].toDouble() <= QVariant(execOp(comp)).toDouble())
-                        return 1;
-                    else
-                        return 0;
-                }
-            }
-        }
-        else if (signe == ">=")
-        {
-            if(QRegExp("[()0-9+\\-/.*a-zA-Z_]+").exactMatch(comp))
-            {
-                if(NbVar.contains(var))
-                {
-                    if(NbVal[NbVar.indexOf(var)].toDouble() >= QVariant(execOp(comp)).toDouble())
-                        return 1;
-                    else
-                        return 0;
-                }
-            }
-        }
-        else if (signe == "<")
-        {
-            if(QRegExp("[()0-9+\\-/.*a-zA-Z_]+").exactMatch(comp))
-            {
-                if(NbVar.contains(var))
-                {
-                    if(NbVal[NbVar.indexOf(var)].toDouble() < QVariant(execOp(comp)).toDouble())
-                        return 1;
-                    else
-                        return 0;
-                }
-            }
-        }
-        else if (signe == ">")
-        {
-            if(QRegExp("[()0-9+\\-/.*a-zA-Z_]+").exactMatch(comp))
-            {
-                if(NbVar.contains(var))
-                {
-                    if(NbVal[NbVar.indexOf(var)].toDouble() > QVariant(execOp(comp)).toDouble())
-                        return 1;
-                    else
-                        return 0;
-                }
+                if(TxVal[TxVar.indexOf(var)] == QVariant(execOp(comp)))
+                { res= 1;}
+                else
+                {res= 0;}
             }
         }
 
     }
+    else if (signe == "!=")
+    {
+        if(QRegExp("[()0-9+\\-/.*a-zA-Z_]+").exactMatch(comp))
+        {
+            if(NbVar.contains(var))
+            {
+                if(NbVal[NbVar.indexOf(var)] != QVariant(execOp(comp)))
+                    res= 1;
+                else
+                    res= 0;
+            }
+            else if(QRegExp(def_rxValListe).exactMatch(var))
+            {
+                if(recupValListe(var) != QVariant(execOp(comp)))
+                    res= 1;
+                else
+                    res= 0;
+            }
+            else if(TxVar.contains(var))
+            {
+                if(TxVal[TxVar.indexOf(var)] != QVariant(execOp(comp)))
+                    res= 1;
+                else
+                    res= 0;
+            }
+
+        }
+
+    }
+    else if (signe == "<=")
+    {
+        if(QRegExp("[()0-9+\\-/.*a-zA-Z_]+").exactMatch(comp))
+        {
+            if(NbVar.contains(var))
+            {
+                if(NbVal[NbVar.indexOf(var)].toDouble() <= QVariant(execOp(comp)).toDouble())
+                    res= 1;
+                else
+                    res= 0;
+            }
+        }
+    }
+    else if (signe == ">=")
+    {
+        if(QRegExp("[()0-9+\\-/.*a-zA-Z_]+").exactMatch(comp))
+        {
+            if(NbVar.contains(var))
+            {
+                if(NbVal[NbVar.indexOf(var)].toDouble() >= QVariant(execOp(comp)).toDouble())
+                    res= 1;
+                else
+                    res= 0;
+            }
+        }
+    }
+    else if (signe == "<")
+    {
+        if(QRegExp("[()0-9+\\-/.*a-zA-Z_]+").exactMatch(comp))
+        {
+            if(NbVar.contains(var))
+            {
+                if(NbVal[NbVar.indexOf(var)].toDouble() < QVariant(execOp(comp)).toDouble())
+                    res= 1;
+                else
+                    res= 0;
+            }
+        }
+    }
+    else if (signe == ">")
+    {
+        if(QRegExp("[()0-9+\\-/.*a-zA-Z_]+").exactMatch(comp))
+        {
+            if(NbVar.contains(var))
+            {
+                if(NbVal[NbVar.indexOf(var)].toDouble() > QVariant(execOp(comp)).toDouble())
+                    res= 1;
+                else
+                    res= 0;
+            }
+        }
+    }
+
+
     return res;
 }
 
