@@ -3,11 +3,12 @@
 
 #include "ui_fenoptions.h"
 #include <QFile>
+#include <QDebug>
 #include <QDialog>
 #include <QRegExp>
 #include <QSettings>
 #include <QStandardItemModel>
-#include <QMessageBox>
+#include "gestionAffichage.hpp"
 
 
 class fenoptions : public QDialog, private Ui::fenoptions
