@@ -13,11 +13,13 @@ TEMPLATE = app
 SOURCES += main.cpp\
         fenprincipale.cpp \
     fenoptions.cpp \
-    qscilexeralgo.cpp
+    qscilexeralgo.cpp \
+    gestionAffichage.cpp
 
 HEADERS  +=  fenprincipale.hpp \
     fenoptions.hpp \
-    qscilexeralgo.hpp
+    qscilexeralgo.hpp \
+    gestionAffichage.hpp
 
 FORMS    += fenprincipale.ui \
     fenoptions.ui
