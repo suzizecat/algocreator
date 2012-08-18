@@ -6,12 +6,12 @@ FenPrincipale::FenPrincipale(QMainWindow *parent) : QMainWindow(parent)
 {
     setupUi(this);
 
-
+    qDebug() << "\nRécuperation des parametres...";
     QSettings param ;
 
     if( param.value("premOuverture",true) == true || param.value("version","0") != QCoreApplication::applicationVersion() )
     {
-
+        qDebug() << "Initialisation des parametres ...";
         param.beginGroup("rxLang");
         param.setValue("rxLigne","([^\n]+)");
         param.setValue("rxVarNb","([a-zA-Z]{1}[a-zA-Z0-9_]*)(?: ?= ?([()0-9+\\-/.*a-zA-Z_]+|([a-zA-Z]{1}[a-zA-Z0-9_]*) ?\\[([()0-9+\\-/.*a-zA-Z_]+)\\])| est[ _]un[ _]nombre)");
@@ -21,26 +21,28 @@ FenPrincipale::FenPrincipale(QMainWindow *parent) : QMainWindow(parent)
         param.setValue("rxModOpSMM","([a-zA-Z]{1}[a-zA-Z0-9_]*) ?(\\<\\<|\\+=|-=|/=|\\*=|%=|\\+\\+|--) ?(-?\\d+(?:\\.|,)?\\d*|[a-zA-Z]{1}[a-zA-Z0-9_]*|\"[^\"]*\")?");
         param.setValue("rxRecValLs","([a-zA-Z]{1}[a-zA-Z0-9_]*) ?\\[\\]");
         param.setValue("rxRecSai","SAISIR ([a-zA-Z]{1}[a-zA-Z0-9_]*) ?(?:\\[([()0-9+\\-/.*a-zA-Z_]+)\\])?");
+        param.setValue("rxAffVar","AFFICHER ([a-zA-Z]{1}[a-zA-Z0-9_]*) ?(?:\\[([()0-9+\\-/.*a-zA-Z_]+)\\])?");
 
         param.setValue("rxStrCondition","SI ([a-zA-Z]{1}[a-zA-Z0-9_]*|([a-zA-Z]{1}[a-zA-Z0-9_]*) ?\\[([()0-9+\\-/.*a-zA-Z_]+)\\]) ?(\\<|==|\\<=|\\>=|\\>|!=) ?([()0-9+\\-/.*a-zA-Z_]+|[a-zA-Z]{1}[a-zA-Z0-9_]*|([a-zA-Z]{1}[a-zA-Z0-9_]*) ?\\[([()0-9+\\-/.*a-zA-Z_]+)\\]|\"[^\"]*\") ALORS");
         param.setValue("rxStrBoucle","TANT ?QUE ([a-zA-Z]{1}[a-zA-Z0-9_]*|([a-zA-Z]{1}[a-zA-Z0-9_]*) ?\\[([()0-9+\\-/.*a-zA-Z_]+)\\]) ?(\\<|==|\\<=|\\>=|\\>|!=) ?([()0-9+\\-/.*a-zA-Z_]+|[a-zA-Z]{1}[a-zA-Z0-9_]*([a-zA-Z]{1}[a-zA-Z0-9_]*) ?\\[([()0-9+\\-/.*a-zA-Z_]+)\\]|\"[^\"]*\") FAIRE");
         param.setValue("rxStrBoucle2", "JUSQU[' ]?A CE QUE ([a-zA-Z]{1}[a-zA-Z0-9_]*|([a-zA-Z]{1}[a-zA-Z0-9_]*) ?\\[([()0-9+\\-/.*a-zA-Z_]+)\\]) ?(\\<|==|\\<=|\\>=|\\>|!=) ?([()0-9+\\-/.*a-zA-Z_]+|[a-zA-Z]{1}[a-zA-Z0-9_]*([a-zA-Z]{1}[a-zA-Z0-9_]*) ?\\[([()0-9+\\-/.*a-zA-Z_]+)\\]|\"[^\"]*\")");
+
         param.endGroup();
 
         if( param.value("premOuverture",true).toBool())
         {
-            QMessageBox::information(this,"AlgoCreator v"+QCoreApplication::applicationVersion(),"Bienvenue dans AlgoCreator version "+QCoreApplication::applicationVersion()+" !");
+            info(this,"Bienvenue dans AlgoCreator version "+QCoreApplication::applicationVersion()+" !");
         }
         else
         {
-            QMessageBox::information(this,"AlgoCreator v"+QCoreApplication::applicationVersion(),"Bienvenue dans AlgoCreator !\nLa mise à jour de la version "+param.value("version","0").toString()+" à la version "+ QCoreApplication::applicationVersion() +" s'est correctement effectuée...");
+            info(this,"Bienvenue dans AlgoCreator !\nLa mise à jour de la version "+param.value("version","0").toString()+" à la version "+ QCoreApplication::applicationVersion() +" s'est correctement effectuée...");
         }
 
         param.setValue("premOuverture",false);
         param.setValue("version",QCoreApplication::applicationVersion());
     }
 
-
+    qDebug() << "Definition des variables...";
 
     def_rxVariable = "[a-zA-Z]{1}[a-zA-Z0-9_]*";
     def_rxNombre = "-?\\d+(?:\\.|,)?\\d*";
@@ -50,6 +52,9 @@ FenPrincipale::FenPrincipale(QMainWindow *parent) : QMainWindow(parent)
     //Détection d'une ligne
 
     param.beginGroup("rxLang");
+
+    qDebug() << "\tInitialisation des regexs ...";
+
     rxLigne = QRegExp(param.value("rxLigne").toString());
     //Definition de la déclaration d'un nombre
     rxNbVar =  QRegExp(param.value("rxVarNb").toString());
@@ -62,6 +67,7 @@ FenPrincipale::FenPrincipale(QMainWindow *parent) : QMainWindow(parent)
     rxModifListe = QRegExp(param.value("rxModLs").toString());
     rxRecupValListe = QRegExp(param.value("rxRecValLs").toString());
     rxRecupSaisie = QRegExp(param.value("rxRecSai").toString());
+    rxAfficheVar = QRegExp(param.value("rxAffVar").toString());
     rxVarOpSurSoisMeme = QRegExp(param.value("rxModOpSMM").toString());
     rxCondition = QRegExp(param.value("rxStrCondition").toString());
     rxBoucle = QRegExp(param.value("rxStrBoucle").toString());
@@ -71,11 +77,13 @@ FenPrincipale::FenPrincipale(QMainWindow *parent) : QMainWindow(parent)
 
     QsciLexerAlgo *lexer= new QsciLexerAlgo();
 
+    qDebug() << "\tConfiguration de l'editeur...";
     // C'est mieux avec une police de charactère...
     lexer->setFont(QFont("Monospace",10));
     zoneTexte->setLexer(lexer);
 
     //Definition de l'API
+
     QsciAPIs *api = new QsciAPIs(lexer);
     api->load("langage.api");
     api->prepare();
@@ -91,6 +99,13 @@ FenPrincipale::FenPrincipale(QMainWindow *parent) : QMainWindow(parent)
     zoneTexte->setMarginWidth(0,"0000");//On se débrouille pour que la marge soit assez grande (ici jusqu'au nombre 999)
     zoneTexte->setUtf8(true);
 
+    qDebug()<< "\t\tPolice : " << zoneTexte->font()
+            <<"\n\t\tNombre de lettres pour autocompletion : "<< zoneTexte->autoCompletionThreshold()
+            <<"\n\t\tGuide d'indentation : " << zoneTexte->indentationGuides()
+            <<"\n\t\tUtilisation des tabulation pour l'indentation : " << zoneTexte->indentationsUseTabs()
+            <<"\n\t\tAuto indentation : " << zoneTexte->autoIndent()
+            <<"\n\t\tLargeur des tabulations : "<< zoneTexte->tabWidth();
+    qDebug()<< "Connection slots/signaux ...";
     connect(actionQuitter,SIGNAL(triggered()),this,SLOT(close()));
     connect(actionOptions,SIGNAL(triggered()),this,SLOT(affOptions()));
 
@@ -99,7 +114,7 @@ FenPrincipale::FenPrincipale(QMainWindow *parent) : QMainWindow(parent)
 void FenPrincipale::tester()
 {
 
-
+    qDebug()<<"Test lance...\n(Re)Initialisation des variables...";
     //On efface les affichages et l'historique
     affListeVar->clear();
     ActFinales.clear();
@@ -122,7 +137,7 @@ void FenPrincipale::tester()
     int pos_origBoucle = -1;// Position du début d'une boucle
     dansBoucle2= false;
 
-
+    qDebug()<<"Recuperation de l'algo...";
     QString contenu = zoneTexte->text(); //On récupère l'algorithme
 
     //########################
@@ -154,6 +169,9 @@ void FenPrincipale::tester()
 
     rx.setPattern("saisir");
     contenu.replace(rx,QString("SAISIR"));
+
+    rx.setPattern("afficher");
+    contenu.replace(rx,QString("AFFICHER"));
 
     rx.setPattern("jusqu[ ']a ce");
     contenu.replace(rx,QString("JUSQU A CE"));
@@ -240,7 +258,10 @@ void FenPrincipale::tester()
                 {
                     niveau_condition ++; //Si on rencontre une boucle, on monte le niveau
                 }
-
+                else if (pos == Lignes.length()-1)
+                {
+                    avertissement(this,"Attention, le mot-clé \"FIN\" n'a pas été rencontré en fin de condition fausse.\nLe fonctionnement de votre algorithme peut être compromis.\n\n***Nombre de \"FIN\" manquants : "+ intVersStr(niveau_condition) + " ***");
+                }
 
                 pos++; // On passe à la ligne suivante
             }
@@ -256,14 +277,13 @@ void FenPrincipale::tester()
             // Note : Lignes[i] devient Lignes[i+1]
 
             pos=i;
+            niveau_condition = 1;
 
-            niveau_condition=1;
             while (niveau_condition > 0 && pos < Lignes.count())
             {
 
                 if(rxCondition.indexIn(Lignes[pos]) != -1) //Si on rencontre une condition, on la conserve
-                    //elle sera traitée au prochain passage ...
-                {
+                {                                          //elle sera traitée au prochain passage ...
                     niveau_condition ++;
                 }
                 else if (QRegExp("FIN").indexIn(Lignes[pos]) != -1)
@@ -276,7 +296,6 @@ void FenPrincipale::tester()
                     niveau_condition --;
                 }
                 else if (QRegExp("SINON").indexIn(Lignes[pos]) != -1)
-
                 {
                     if (niveau_condition == 1)      //Si on rencontre un "sinon" et qu'on est dans la principale
                         //( condition fausse )
@@ -286,8 +305,16 @@ void FenPrincipale::tester()
                         niveau_condition = 0;      // On sort
                     }
                 }
+                if (pos == Lignes.length())
+                {
+                    avertissement(this,"Attention, le mot-clé \"FIN\" n'a pas été rencontré en fin de condition vraie.\nLe fonctionnement de votre algorithme peut être compromis.\n\n***Nombre de \"FIN\" manquants : "+ intVersStr(niveau_condition) + " ***");
+                    niveau_condition-- ;
+                }
+
                 pos ++;
             }
+
+
             i--; //On prévoit la prochaine incrémentation ( au tour de boucle ) pour revenir au point de départ
 
 
@@ -311,7 +338,7 @@ void FenPrincipale::tester()
                 pos_origBoucle = -1;
                 pos=i+1;            // On prend la position +1 ( on saute la ligne définissant la boucle
 
-                niveau_condition=1; //Le niveau correspond au nombre de condition dans lesquelles nous sommes rentrés
+                niveau_condition = 1; //Le niveau correspond au nombre de condition dans lesquelles nous sommes rentrés
                 //Celui-ci est à 1 Pour la condition primaire
                 //Et atteint 0 quand on sort de cette condition.
 
@@ -331,9 +358,13 @@ void FenPrincipale::tester()
                         niveau_condition --;    //Si on sort d'une condition, on baisse le niveau
                         // Si on était dans la condition principale, on en sort
                     }
-
+                    else if (pos == Lignes.length())
+                    {
+                        avertissement(this,"Attention, le mot-clé \"FIN\" n'a pas été rencontré en fin de boucle.\nLe fonctionnement de votre algorithme peut être compromis.\n\n***Nombre de \"FIN\" manquants : "+ intVersStr(niveau_condition) + " ***");
+                    }
                     pos++; // On passe à la ligne suivante
                 }
+
 
                 i = pos-1; //Comme l'incrémentation se fait à la fin, il faut soustraire 1 pour avoir la bonne ligne
             }
@@ -350,41 +381,53 @@ void FenPrincipale::tester()
 
 
             }
-            else
+            else if(pos_origBoucle == -1)
             {
-                if(pos_origBoucle == -1)
-                {
 
-                    pos_origBoucle=i; // Si on était pas dans une boucle, on prend la valeur de départ
-                    // ATTENTION : Ne permet qu'une boucle à la fois
-                }
 
-                pos=i; // On prend la position
 
-                niveau_condition=1; //Le niveau correspond au nombre de condition dans lesquelles nous sommes rentrés
+                pos_origBoucle=i; // Si on était pas dans une boucle, on prend la valeur de départ
+                // ATTENTION : Ne permet qu'une boucle à la fois
+                niveau_condition = 1;
+                //Le niveau correspond au nombre de condition dans lesquelles nous sommes rentrés
                 //Celui-ci est à 1 Pour la condition primaire
                 //Et atteint 0 qu}and on sort de cette condition.
 
+
+
+                pos=i; // On prend la position
+
+
                 // On va parcourir l'algorithme jusqu'à trouver la fin de la boucle
+
                 while (niveau_condition > 0 && pos < Lignes.count())
                 {
-
-
                     if(rxCondition.indexIn(Lignes[pos]) != -1)
                     {
                         niveau_condition ++; //Si on entre dans une autre condition, on augment le niveau
                     }
-                    if(rxBoucle.indexIn(Lignes[pos]) != -1)
+                    if(pos != pos_origBoucle && rxBoucle.indexIn(Lignes[pos]) != -1)
                     {
-                        niveau_condition ++; //Si on entre dans une autre boucle, on augment le niveau
+                        niveau_condition ++; //Si on entre dans une autre boucle, on augmente le niveau
                     }
                     else if (QRegExp("FIN").indexIn(Lignes[pos]) != -1)
                     {// On prend la position
                         niveau_condition --;    //Si on sort d'une condition, on baisse le niveau
                         // Si on était dans la condition principale, on en sort
                     }
+                    else if (pos == Lignes.length()-1)
+                    {
+                        avertissement(this,"Attention, le mot-clé \"FIN\" n'a pas été rencontré en fin de boucle.\nLe fonctionnement de votre algorithme peut être compromis.\nLa boucle en cours a été stoppée.\n\n***Nombre de \"FIN\" manquants : "+ intVersStr(niveau_condition) + " ***");
+                        niveau_condition = 0;
+                        pos_boucle = -1;
+                        pos_origBoucle = -1;
+                    }
+
                     pos++; // On passe à la ligne suivante
+
                 }
+
+
                 pos--;
                 pos_boucle=pos;
             }
@@ -397,6 +440,7 @@ void FenPrincipale::tester()
         else if(modVarOpSurSoisMeme(Lignes[i])){} //Opération sur soi-meme
         else if(modListe(Lignes[i],true)){}  //Modifications d'une valeur d'une liste
         else if(modSaisie(Lignes[i])){}      //Saisie d'une valeur
+        else if(affVal(Lignes[i])){} //Affichage d'une valeur
         else if(QRegExp("REPETER").indexIn(Lignes[i]) != -1 )
         {
             if( ! dansBoucle2)
@@ -411,12 +455,13 @@ void FenPrincipale::tester()
             QString msg;
 
             msg += "--Variables--\n";
-            msg += "posOrig : "+ QVariant(pos_origBoucle).toString()+ "\n";
-            msg += "posFin : "+ QVariant(pos_boucle).toString()+ "\n";
-            msg += "dansBoucle2 : "+ QVariant(dansBoucle2).toString()+ "\n";
+            msg += "posOrig : "+ intVersStr(pos_origBoucle)+ "\n";
+            msg += "posFin : "+ intVersStr(pos_boucle)+ "\n";
+            msg += "dansBoucle2 : "+ intVersStr(dansBoucle2)+ "\n";
+            msg += "niveauCondition : " + intVersStr(niveau_condition) + "\n";
 
 
-            QMessageBox::information(this,"Informations de Debug", msg);
+            info(this,"Informations de Debug", msg);
 
 
         }
@@ -459,7 +504,6 @@ void FenPrincipale::tester()
     //            affListeVar->addItem(QString(Lignes.at(i) ));
     //        }
 }
-
 
 //Renvoie une chaine du type "une chaine" sans les guillemets
 //Ex : retirerGuillemets("\"plop\"") == plop
@@ -1167,6 +1211,60 @@ bool FenPrincipale::modListe(QString liste, int indice, QVariant valeur, bool cr
     return false;
 }
 
+bool FenPrincipale::affVal(QString ligne)
+{
+    if(rxAfficheVar.indexIn(ligne) != -1)
+    {
+
+        QString val;
+        QString var = rxAfficheVar.capturedTexts()[1];
+
+
+        if(NbVar.contains(var))
+        {
+
+            val = NbVal[NbVar.indexOf(var)].toString();
+            info(this,"Affichage d'une valeur",QString ("La variable numérique " + var + " a pour valeur " + val));
+        }
+        else if(TxVar.contains(var))
+        {
+            val = TxVal[TxVar.indexOf(var)];
+            info(this,"Affichage d'une valeur",QString ("La variable texte (chaîne)" + var + " a pour valeur " + val));
+        }
+        else if(LsVar.contains(var))
+        {
+
+            int i = LsVar.indexOf(var);
+            int j = execOp(rxAfficheVar.capturedTexts()[2]).toInt();
+            if(rxAfficheVar.capturedTexts()[2] != "")
+            {
+                val = LsVal[i][j].toString();
+                info(this,"Affichage d'une valeur",QString ("La liste" + var + "à l'indice "+ j +" a pour valeur " + val));
+            }
+            else
+            {
+                for (int j = 0 ; j < LsVal[i].size() ; j++)
+                {
+
+                    val += LsVal[i][j].toString();
+                    if(j != LsVal[i].size()-1)
+                    {
+                        val +=  " | ";
+                    }
+
+                }
+                info(this,"Affichage d'une valeur",QString ("La liste" + var + " contient les valeurs \n{" + val+"}"));
+            }
+        }
+
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
 int FenPrincipale::execCondition(QString ligne)
 {
     /*
@@ -1506,3 +1604,4 @@ void FenPrincipale::affOptions()
         param.endGroup();
     }
 }
+

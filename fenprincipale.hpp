@@ -3,11 +3,12 @@
 
 #include <QMainWindow>
 #include <QList>
-#include <QDialog>
-#include <QInputDialog>
+
+
 #include <Qsci/qsciapis.h>
 #include <Qsci/qscilexercpp.h>
 #include "qscilexeralgo.hpp"
+
 #include "fenoptions.hpp"
 #include "ui_fenprincipale.h"
 
@@ -50,6 +51,7 @@ protected:
     QRegExp rxModifListe;       //Regex : Modification d'une liste
     QRegExp rxRecupValListe;    //Regex : Récupération d'une valeur d'une liste
     QRegExp rxRecupSaisie;
+    QRegExp rxAfficheVar;       //Regex : Affichage de la valeur d'une variable
     QRegExp rxCondition;        //Regex : Definition d'une condition
     QRegExp rxBoucle;           //Regex : Définition d'une boucle type <while ...>
     QRegExp rxBoucle2;          //Regex : Definition d'une boucle type <do ... while>
@@ -70,7 +72,10 @@ protected:
     bool modListe(QString, bool=true);
     bool modListe(QString,int=0 , QVariant = QVariant(), bool=true);
 
+    bool affVal(QString);
+
     QVariant recupValListe(QString);
+
 
     int execCondition(QString);
     int execBoucle(QString);
