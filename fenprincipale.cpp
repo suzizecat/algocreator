@@ -14,15 +14,16 @@ FenPrincipale::FenPrincipale(QMainWindow *parent) : QMainWindow(parent)
         qDebug() << "Initialisation des parametres ...";
         param.beginGroup("rxLang");
         param.setValue("rxLigne","([^\n]+)");
-        param.setValue("rxVarNb","([a-zA-Z]{1}[a-zA-Z0-9_]*)(?: ?= ?([()0-9+\\-/.*a-zA-Z_]+|([a-zA-Z]{1}[a-zA-Z0-9_]*) ?\\[([()0-9+\\-/.*a-zA-Z_]+)\\])| est[ _]un[ _]nombre)");
+        param.setValue("rxVarNb","([a-zA-Z]{1}[a-zA-Z0-9_]*)(?: ?= ?([()0-9+\\-/.,*a-zA-Z _]+|([a-zA-Z]{1}[a-zA-Z0-9_]*) ?\\[([()0-9+\\-/.,*a-zA-Z _]+)\\])| est[ _]un[ _]nombre)");
         param.setValue("rxVarTx","([a-zA-Z]{1}[a-zA-Z0-9_]*)(?: ?= ?\"([^\"]*)\"| est[ _]une[ _]cha[îi]ne)");
         param.setValue("rxVarLs","([a-zA-Z]{1}[a-zA-Z0-9_]*)(?: est[ _]une[ _]liste ?| ?\\[ ?\\])");
         param.setValue("rxModLs","([a-zA-Z]{1}[a-zA-Z0-9_]*) ?\\[([()0-9+\\-/.*a-zA-Z_]+)\\] ?= ?([^\n]+)");
-        param.setValue("rxModOpSMM","([a-zA-Z]{1}[a-zA-Z0-9_]*) ?(\\<\\<|\\+=|-=|/=|\\*=|%=|\\+\\+|--) ?(-?\\d+(?:\\.|,)?\\d*|[a-zA-Z]{1}[a-zA-Z0-9_]*|\"[^\"]*\")?");
+        param.setValue("rxModOpSMM","([a-zA-Z]{1}[a-zA-Z0-9_]*) ?(\\<\\<|\\+=|-=|/=|\\*=|%=|\\+\\+|--) ?([()0-9+\\-/.,*a-zA-Z_ ]+|\"[^\"]*\")?");
         param.setValue("rxRecValLs","([a-zA-Z]{1}[a-zA-Z0-9_]*) ?\\[\\]");
         param.setValue("rxRecSai","SAISIR ([a-zA-Z]{1}[a-zA-Z0-9_]*) ?(?:\\[([()0-9+\\-/.*a-zA-Z_]+)\\])?");
         param.setValue("rxAffVar","AFFICHER ([a-zA-Z]{1}[a-zA-Z0-9_]*) ?(?:\\[([()0-9+\\-/.*a-zA-Z_]+)\\])?");
-
+        param.setValue("rxValAlea","HASARD( [()0-9+\\-/.*a-zA-Z_]+)?(?: ?,([()0-9+\\-/.*a-zA-Z_]+))?");
+        param.setValue("rxValEnt","PART_ENT( [()0-9+\\-/.*a-zA-Z_]+)?");
         param.setValue("rxStrCondition","SI ([a-zA-Z]{1}[a-zA-Z0-9_]*|([a-zA-Z]{1}[a-zA-Z0-9_]*) ?\\[([()0-9+\\-/.*a-zA-Z_]+)\\]) ?(\\<|==|\\<=|\\>=|\\>|!=) ?([()0-9+\\-/.*a-zA-Z_]+|[a-zA-Z]{1}[a-zA-Z0-9_]*|([a-zA-Z]{1}[a-zA-Z0-9_]*) ?\\[([()0-9+\\-/.*a-zA-Z_]+)\\]|\"[^\"]*\") ALORS");
         param.setValue("rxStrBoucle","TANT ?QUE ([a-zA-Z]{1}[a-zA-Z0-9_]*|([a-zA-Z]{1}[a-zA-Z0-9_]*) ?\\[([()0-9+\\-/.*a-zA-Z_]+)\\]) ?(\\<|==|\\<=|\\>=|\\>|!=) ?([()0-9+\\-/.*a-zA-Z_]+|[a-zA-Z]{1}[a-zA-Z0-9_]*([a-zA-Z]{1}[a-zA-Z0-9_]*) ?\\[([()0-9+\\-/.*a-zA-Z_]+)\\]|\"[^\"]*\") FAIRE");
         param.setValue("rxStrBoucle2", "JUSQU[' ]?A CE QUE ([a-zA-Z]{1}[a-zA-Z0-9_]*|([a-zA-Z]{1}[a-zA-Z0-9_]*) ?\\[([()0-9+\\-/.*a-zA-Z_]+)\\]) ?(\\<|==|\\<=|\\>=|\\>|!=) ?([()0-9+\\-/.*a-zA-Z_]+|[a-zA-Z]{1}[a-zA-Z0-9_]*([a-zA-Z]{1}[a-zA-Z0-9_]*) ?\\[([()0-9+\\-/.*a-zA-Z_]+)\\]|\"[^\"]*\")");
@@ -73,6 +74,8 @@ FenPrincipale::FenPrincipale(QMainWindow *parent) : QMainWindow(parent)
     rxBoucle = QRegExp(param.value("rxStrBoucle").toString());
     rxBoucle2 =  QRegExp(param.value("rxStrBoucle2").toString());
 
+    rxValAlea = QRegExp(param.value("rxValAlea").toString());
+    rxValEnt = QRegExp(param.value("rxValEnt").toString());
     param.endGroup();
 
     QsciLexerAlgo *lexer= new QsciLexerAlgo();
@@ -101,10 +104,10 @@ FenPrincipale::FenPrincipale(QMainWindow *parent) : QMainWindow(parent)
 
     qDebug()<< "\t\tPolice : " << zoneTexte->font()
             <<"\n\t\tNombre de lettres pour autocompletion : "<< zoneTexte->autoCompletionThreshold()
-            <<"\n\t\tGuide d'indentation : " << zoneTexte->indentationGuides()
-            <<"\n\t\tUtilisation des tabulation pour l'indentation : " << zoneTexte->indentationsUseTabs()
-            <<"\n\t\tAuto indentation : " << zoneTexte->autoIndent()
-            <<"\n\t\tLargeur des tabulations : "<< zoneTexte->tabWidth();
+           <<"\n\t\tGuide d'indentation : " << zoneTexte->indentationGuides()
+          <<"\n\t\tUtilisation des tabulation pour l'indentation : " << zoneTexte->indentationsUseTabs()
+         <<"\n\t\tAuto indentation : " << zoneTexte->autoIndent()
+        <<"\n\t\tLargeur des tabulations : "<< zoneTexte->tabWidth();
     qDebug()<< "Connection slots/signaux ...";
     connect(actionQuitter,SIGNAL(triggered()),this,SLOT(close()));
     connect(actionOptions,SIGNAL(triggered()),this,SLOT(affOptions()));
@@ -179,6 +182,12 @@ void FenPrincipale::tester()
     rx.setPattern("repeter");
     contenu.replace(rx,QString("REPETER"));
 
+    rx.setPattern("part_ent");
+    contenu.replace(rx,QString("PART_ENT"));
+
+    rx.setPattern("hasard");
+    contenu.replace(rx,QString("HASARD"));
+
     rx.setPattern("debug");
     contenu.replace(rx,QString("DEBUG"));
 
@@ -188,6 +197,9 @@ void FenPrincipale::tester()
     //On créé une variable nombre que l'utilisateur ne verra pas.
     //Cette valeur sera utilisée notament pour les conditions (pour avoir une valeur fixe...)
     contenu =  "VALUNIQUExNB = 0\n"+ zoneTexte->text();
+
+
+
 
     //On récupère chaque ligne pour un controle plus facile
     while( (pos = rxLigne.indexIn(contenu,pos)) != -1 )
@@ -503,6 +515,8 @@ void FenPrincipale::tester()
     //        {
     //            affListeVar->addItem(QString(Lignes.at(i) ));
     //        }
+
+
 }
 
 //Renvoie une chaine du type "une chaine" sans les guillemets
@@ -526,6 +540,8 @@ QString FenPrincipale::retirerGuillemets(QString ch)
 QString FenPrincipale::execOp(QString Op)
 {
 
+
+
     int i = 0;
     int pos = 0;
     QString chActu=Op;
@@ -539,6 +555,47 @@ QString FenPrincipale::execOp(QString Op)
     QRegExp opNormales = QRegExp("(-?\\d+(?:\\.|,)?\\d*) ?(\\+|-) ?(-?\\d+(?:\\.|,)?\\d*)");
     QStringList chSuccessives;
     QString res;
+
+    //Traitement des nombres aléatoires
+    while( (pos = rxValAlea.indexIn(chActu,pos)) != -1 )
+    {
+        QString borneMin = rxValAlea.capturedTexts()[2];
+        QString borneMax = rxValAlea.capturedTexts()[1];
+
+        double rdmax = RAND_MAX; //RandMax défini dans <stdlib.h> et <cstdlib>
+        double nb = (qrand()+1)/(rdmax+1);
+
+        if (borneMax != "" && borneMin != "" )
+        {
+
+            nb= nb*execOp(QString(borneMin+"-"+borneMax)).toDouble();
+            nb += execOp(borneMax).toDouble();
+            nb = QVariant(nb).toInt();
+
+            //nb = partie entiere de nb*(max-min)+min
+
+        }
+        else if (borneMax != "")
+        {
+
+            nb= nb*execOp(borneMax).toDouble();
+            nb = QVariant(nb).toInt();
+        }
+        chActu.replace(rxValAlea,QVariant(nb).toString());
+    }
+    pos=0;
+    //Traitement des parties entieres
+    while( (pos = rxValEnt.indexIn(chActu,pos)) != -1 )
+    {
+
+        QString val = rxValEnt.capturedTexts()[1];
+        QString nb = execOp(val).left(execOp(val).indexOf("\."));
+
+        qDebug()<< "\tPartie entiere de " << val << "(" << execOp(val) << ") : " << nb << "(" <<execOp(val).indexOf("\.")<< ")";
+        chActu.replace(rxValEnt,QVariant(nb).toString());
+    }
+    pos=0;
+
     if (chActu == "")
     { return QString("0");}
     while ((pos = valListe.indexIn(chActu, pos)) != -1)
@@ -678,6 +735,7 @@ QVariant FenPrincipale::recupValListe(QString ch)
 bool FenPrincipale::defVarNb(QString ligne)
 {
     QString nvVal;
+
     if ( rxNbVar.indexIn(ligne) != -1) //S'il y a qqch
     {
         if(NbVar.contains(rxNbVar.capturedTexts().at(1))) // Si la variable existe déjà...
@@ -794,52 +852,63 @@ bool FenPrincipale::modVarOpSurSoisMeme(QString ligne)
 
         QString signe = rxVarOpSurSoisMeme.capturedTexts()[2];
         QString var = rxVarOpSurSoisMeme.capturedTexts()[1];
-        QVariant val = rxVarOpSurSoisMeme.capturedTexts()[3];
+        QString val = rxVarOpSurSoisMeme.capturedTexts()[3];
+
+        while(val[0] == ' ')
+        {
+            val.remove(0,1);
+        }
+
+        qDebug() <<"\tOperation : "<< var << signe << val;
 
         if(signe == "<<")
         {
+
             if(LsVar.contains(var))
             {
-                if(QRegExp("\"([^\"]*)\"|-?\\d+(?:\\.|,)?\\d*").exactMatch(val.toString()))
+
+                if(QRegExp("\"([^\"]*)\"|-?\\d+(?:\\.|,)?\\d*").exactMatch(val))
                 {
-                    LsVal[LsVar.indexOf(var)] << retirerGuillemets(val.toString());
+                    LsVal[LsVar.indexOf(var)] << retirerGuillemets(val);
                 }
-                else if (QRegExp("[a-zA-Z]{1}[a-zA-Z0-9_]*").exactMatch(val.toString()))
+                else if (QRegExp("[a-zA-Z]{1}[a-zA-Z0-9_]*").exactMatch(val))
                 {
-                    if(NbVar.contains(val.toString()))
+
+                    if(NbVar.contains(val))
                     {
-                        LsVal[LsVar.indexOf(var)] << NbVal[NbVar.indexOf(val.toString())];
+                        LsVal[LsVar.indexOf(var)] << NbVal[NbVar.indexOf(val)];
+
                     }
-                    else if(TxVar.contains(val.toString()))
+                    else if(TxVar.contains(val))
                     {
-                        LsVal[LsVar.indexOf(var)] << TxVal[TxVar.indexOf(val.toString())];
+                        LsVal[LsVar.indexOf(var)] << TxVal[TxVar.indexOf(val)];
                     }
-                    else if(LsVar.contains(val.toString()))
+                    else if(LsVar.contains(val))
                     {
-                        LsVal[LsVar.indexOf(var)] << LsVal[LsVar.indexOf(val.toString())];
+                        LsVal[LsVar.indexOf(var)] << LsVal[LsVar.indexOf(val)];
                     }
 
                 }
             }
             if(TxVar.contains(var))
             {
-                if(QRegExp("\"([^\"]*)\"|-?\\d+(?:\\.|,)?\\d*").exactMatch(val.toString()))
+                if(QRegExp("\"([^\"]*)\"|-?\\d+(?:\\.|,)?\\d*").exactMatch(val))
                 {
-                    TxVal[TxVar.indexOf(var)] += retirerGuillemets(val.toString());
+                    TxVal[TxVar.indexOf(var)] += retirerGuillemets(val);
                 }
-                else if (QRegExp("[a-zA-Z]{1}[a-zA-Z0-9_]*").exactMatch(val.toString()))
+                else if (QRegExp("[a-zA-Z]{1}[a-zA-Z0-9_]*").exactMatch(val))
                 {
-                    if(NbVar.contains(val.toString()))
+                    if(NbVar.contains(val))
                     {
-                        LsVal[LsVar.indexOf(var)] << NbVal[NbVar.indexOf(val.toString())];
+                        LsVal[LsVar.indexOf(var)] << NbVal[NbVar.indexOf(val)];
                     }
-                    else if(TxVar.contains(val.toString()))
+                    else if(TxVar.contains(val))
                     {
-                        LsVal[LsVar.indexOf(var)] << TxVal[TxVar.indexOf(val.toString())];
+                        LsVal[LsVar.indexOf(var)] << TxVal[TxVar.indexOf(val)];
                     }
-                    else if(LsVar.contains(val.toString()))
+                    else if(LsVar.contains(val))
                     {
-                        LsVal[LsVar.indexOf(var)] << LsVal[LsVar.indexOf(val.toString())];
+                        LsVal[LsVar.indexOf(var)] << LsVal[LsVar.indexOf(val)];
                     }
 
                 }
@@ -850,77 +919,67 @@ bool FenPrincipale::modVarOpSurSoisMeme(QString ligne)
         {
             if(LsVar.contains(var))
             {
-                if(QRegExp("\"([^\"]*)\"|-?\\d+(?:\\.|,)?\\d*").exactMatch(val.toString()))
+                if(QRegExp("\"([^\"]*)\"|-?\\d+(?:\\.|,)?\\d*").exactMatch(val))
                 {
-                    LsVal[LsVar.indexOf(var)] << retirerGuillemets(val.toString());
+                    LsVal[LsVar.indexOf(var)] << retirerGuillemets(val);
                 }
-                else if (QRegExp("[a-zA-Z]{1}[a-zA-Z0-9_]*").exactMatch(val.toString()))
+                else if (QRegExp("[a-zA-Z]{1}[a-zA-Z0-9_]*").exactMatch(val))
                 {
-                    if(NbVar.contains(val.toString()))
+                    if(NbVar.contains(val))
                     {
-                        LsVal[LsVar.indexOf(var)] << NbVal[NbVar.indexOf(val.toString())];
+                        LsVal[LsVar.indexOf(var)] << NbVal[NbVar.indexOf(val)];
                     }
-                    else if(TxVar.contains(val.toString()))
+                    else if(TxVar.contains(val))
                     {
-                        LsVal[LsVar.indexOf(var)] << TxVal[TxVar.indexOf(val.toString())];
+                        LsVal[LsVar.indexOf(var)] << TxVal[TxVar.indexOf(val)];
                     }
-                    else if(LsVar.contains(val.toString()))
+                    else if(LsVar.contains(val))
                     {
-                        LsVal[LsVar.indexOf(var)] << LsVal[LsVar.indexOf(val.toString())];
+                        LsVal[LsVar.indexOf(var)] << LsVal[LsVar.indexOf(val)];
                     }
 
                 }
             }
             else if(TxVar.contains(var))
             {
-                if(QRegExp("\"([^\"]*)\"|-?\\d+(?:\\.|,)?\\d*").exactMatch(val.toString()))
+                if(QRegExp("\"([^\"]*)\"|-?\\d+(?:\\.|,)?\\d*").exactMatch(val))
                 {
-                    TxVal[TxVar.indexOf(var)] += retirerGuillemets(val.toString());
+                    TxVal[TxVar.indexOf(var)] += retirerGuillemets(val);
                 }
-                else if (QRegExp("[a-zA-Z]{1}[a-zA-Z0-9_]*").exactMatch(val.toString()))
+                else if (QRegExp("[a-zA-Z]{1}[a-zA-Z0-9_]*").exactMatch(val))
                 {
-                    if(NbVar.contains(val.toString()))
+                    if(NbVar.contains(val))
                     {
-                        LsVal[LsVar.indexOf(var)] << NbVal[NbVar.indexOf(val.toString())];
+                        LsVal[LsVar.indexOf(var)] << NbVal[NbVar.indexOf(val)];
                     }
-                    else if(TxVar.contains(val.toString()))
+                    else if(TxVar.contains(val))
                     {
-                        LsVal[LsVar.indexOf(var)] << TxVal[TxVar.indexOf(val.toString())];
+                        LsVal[LsVar.indexOf(var)] << TxVal[TxVar.indexOf(val)];
                     }
-                    else if(LsVar.contains(val.toString()))
+                    else if(LsVar.contains(val))
                     {
-                        LsVal[LsVar.indexOf(var)] << LsVal[LsVar.indexOf(val.toString())];
+                        LsVal[LsVar.indexOf(var)] << LsVal[LsVar.indexOf(val)];
                     }
 
                 }
             }
             else if(NbVar.contains(var))
             {
-                if(QRegExp("-?\\d+(?:\\.|,)?\\d*").exactMatch(val.toString()))
-                {
-                    NbVal[NbVar.indexOf(var)] =NbVal[NbVar.indexOf(var)].toDouble() + val.toDouble();
-                }
-                else
-                {
-                    if(NbVar.contains(val.toString()))
-                    {
-                        NbVal[NbVar.indexOf(var)] = NbVal[NbVar.indexOf(var)].toDouble() + NbVal[NbVar.indexOf(val.toString())].toDouble();
-                    }
-                }
+                NbVal[NbVar.indexOf(var)] = NbVal[NbVar.indexOf(var)].toDouble() + execOp(val).toDouble();
             }
         }
         else if (signe == "-=")
         {
             if(LsVar.contains(var))
             {
-                if(QRegExp("\"([^\"]*)\"|-?\\d+(?:\\.|,)?\\d*").exactMatch(val.toString()))
+                if(QRegExp("\"([^\"]*)\"|-?\\d+(?:\\.|,)?\\d*").exactMatch(val))
                 {
 
                     int x = LsVal[LsVar.indexOf(var)].size();
                     for (i = 0 ; i < x ; i++)
                     {
 
-                        if(LsVal[i].contains(retirerGuillemets(val.toString())) and LsVal[i].size()!=0)
+                        if(LsVal[i].contains(retirerGuillemets(val)) and LsVal[i].size()!=0)
                         {
 
                             LsVal[LsVar.indexOf(var)].removeAt(i) ;
@@ -930,20 +989,20 @@ bool FenPrincipale::modVarOpSurSoisMeme(QString ligne)
                     }
 
                 }
-                else if (QRegExp("[a-zA-Z]{1}[a-zA-Z0-9_]*").exactMatch(val.toString()))
+                else if (QRegExp("[a-zA-Z]{1}[a-zA-Z0-9_]*").exactMatch(val))
                 {
                     bool liste = false;
-                    if(NbVar.contains(val.toString()))
+                    if(NbVar.contains(val))
                     {
-                        val = NbVal[NbVar.indexOf(val.toString())];
+                        val = NbVal[NbVar.indexOf(val)].toString();
                     }
-                    else if(TxVar.contains(val.toString()))
+                    else if(TxVar.contains(val))
                     {
-                        val = TxVal[TxVar.indexOf(val.toString())];
+                        val = TxVal[TxVar.indexOf(val)];
                     }
-                    else if(LsVar.contains(val.toString()))
+                    else if(LsVar.contains(val))
                     {
-                        val = LsVal[LsVar.indexOf(val.toString())];
+                        //val = LsVal[LsVar.indexOf(val)];
                         liste = true;
                     }
                     if(!liste)
@@ -952,7 +1011,7 @@ bool FenPrincipale::modVarOpSurSoisMeme(QString ligne)
                         {
                             if(LsVal[LsVar.indexOf(var)][i]== val)
                             {
-                                LsVal[LsVar.indexOf(var)].removeAt(LsVal[i].indexOf(val.toString()));
+                                LsVal[LsVar.indexOf(var)].removeAt(LsVal[i].indexOf(val));
                             }
                         }
 
@@ -977,19 +1036,19 @@ bool FenPrincipale::modVarOpSurSoisMeme(QString ligne)
             }
             else if(TxVar.contains(var))
             {
-                TxVal[TxVar.indexOf(var)].remove(retirerGuillemets(val.toString()));
+                TxVal[TxVar.indexOf(var)].remove(retirerGuillemets(val));
             }
             else if(NbVar.contains(var))
             {
-                if(QRegExp("-?\\d+(?:\\.|,)?\\d*").exactMatch(val.toString()))
+                if(QRegExp("-?\\d+(?:\\.|,)?\\d*").exactMatch(val))
                 {
                     NbVal[NbVar.indexOf(var)] = NbVal[NbVar.indexOf(var)].toDouble() - val.toDouble();
                 }
-                else if (QRegExp("[a-zA-Z]{1}[a-zA-Z0-9_]*").exactMatch(val.toString()))
+                else if (QRegExp("[a-zA-Z]{1}[a-zA-Z0-9_]*").exactMatch(val))
                 {
-                    if(NbVar.contains(val.toString()))
+                    if(NbVar.contains(val))
                     {
-                        NbVal[NbVar.indexOf(var)] =NbVal[NbVar.indexOf(var)].toDouble() - NbVal[NbVar.indexOf(val.toString())].toDouble();
+                        NbVal[NbVar.indexOf(var)] =NbVal[NbVar.indexOf(var)].toDouble() - NbVal[NbVar.indexOf(val)].toDouble();
                     }
                 }
             }

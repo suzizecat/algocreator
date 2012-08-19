@@ -56,6 +56,8 @@ protected:
     QRegExp rxBoucle;           //Regex : Définition d'une boucle type <while ...>
     QRegExp rxBoucle2;          //Regex : Definition d'une boucle type <do ... while>
 
+    QRegExp rxValAlea;          //Regex : Remplacement de cette regex par un nombre aleatoire
+    QRegExp rxValEnt;
 
     bool dansBoucle2;
 
