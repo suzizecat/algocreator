@@ -27,3 +27,6 @@ LIBS += -lqscintilla2
 
 OTHER_FILES += \
     langage.api
+
+RESOURCES += \
+    ressources.qrc

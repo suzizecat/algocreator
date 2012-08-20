@@ -1,0 +1,17 @@
+<RCC>
+    <qresource prefix="/images">
+        <file alias="refaire">icones/arrow_redo.png</file>
+        <file alias="undo">icones/arrow_undo.png</file>
+        <file alias="quitter">icones/cross.png</file>
+        <file alias="sauver">icones/disk.png</file>
+        <file alias="charger">icones/folder_database.png</file>
+        <file alias="nouveau">icones/script.png</file>
+        <file alias="debugger">icones/script_gear.png</file>
+        <file alias="effacer">icones/script_lightning.png</file>
+        <file alias="imprimer">icones/printer.png</file>
+        <file alias="tester">icones/script_go.png</file>
+    </qresource>
+    <qresource prefix="/textes">
+        <file alias="apiLang">langage.api</file>
+    </qresource>
+</RCC>
