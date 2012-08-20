@@ -14,7 +14,7 @@ int main(int argc, char *argv[])
     QApplication app(argc, argv);
     app.setOrganizationName("Amidemoi");
     app.setApplicationName("AlgoCreator");
-    app.setApplicationVersion("0.32 BETA");
+    app.setApplicationVersion("0.4 BETA");
     qDebug() <<"Organisation : " << app.organizationName() << "\nNom du programme : "
              << app.applicationName() << "\nVersion : " << app.applicationVersion() << "\nChemin du programme :"
                 << app.applicationDirPath();
