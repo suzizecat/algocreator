@@ -3,6 +3,9 @@
 
 #include <QMainWindow>
 #include <QList>
+#include <QFileDialog>
+#include <QFileInfo>
+#include <QTextStream>
 
 
 #include <Qsci/qsciapis.h>
@@ -22,6 +25,9 @@ public:
 
 
 protected:
+    QString nom_fichier;
+    QString chemin_fichier;
+
     QString def_rxVariable; //Bout de Regex : un nom de variable
     QString def_rxValListe; //Bout de Regex : valeur d'un indice dans une liste
     QString def_rxNombre;
@@ -86,6 +92,9 @@ protected:
  public slots :
     void tester();
     void affOptions();
+    void sauvegarder();
+    void ouvrir();
+    void nouveau();
 };
 
 #endif // FENRINCIPALE_H

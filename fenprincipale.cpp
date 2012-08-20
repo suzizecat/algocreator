@@ -50,11 +50,13 @@ FenPrincipale::FenPrincipale(QMainWindow *parent) : QMainWindow(parent)
     def_rxOp = "[()0-9+\\-/.*a-zA-Z_]+";
     def_rxValListe = "("+def_rxVariable+") ?\\[([()0-9+\\-/.*a-zA-Z_]+)\\]";
 
-    //Détection d'une ligne
+
+    nom_fichier = "Sans Titre";
+    chemin_fichier = "";
 
     param.beginGroup("rxLang");
 
-    qDebug() << "\tInitialisation des regexs ...";
+    qDebug() << "Initialisation des regexs ...";
 
     rxLigne = QRegExp(param.value("rxLigne").toString());
     //Definition de la déclaration d'un nombre
@@ -80,7 +82,7 @@ FenPrincipale::FenPrincipale(QMainWindow *parent) : QMainWindow(parent)
 
     QsciLexerAlgo *lexer= new QsciLexerAlgo();
 
-    qDebug() << "\tConfiguration de l'editeur...";
+    qDebug() << "Configuration de l'editeur...";
     // C'est mieux avec une police de charactère...
     lexer->setFont(QFont("Monospace",10));
     zoneTexte->setLexer(lexer);
@@ -88,7 +90,7 @@ FenPrincipale::FenPrincipale(QMainWindow *parent) : QMainWindow(parent)
     //Definition de l'API
 
     QsciAPIs *api = new QsciAPIs(lexer);
-    api->load("langage.api");
+    api->load(":/textes/apiLang");
     api->prepare();
 
     //application et paramêtrage de l'API
@@ -102,15 +104,27 @@ FenPrincipale::FenPrincipale(QMainWindow *parent) : QMainWindow(parent)
     zoneTexte->setMarginWidth(0,"0000");//On se débrouille pour que la marge soit assez grande (ici jusqu'au nombre 999)
     zoneTexte->setUtf8(true);
 
-    qDebug()<< "\t\tPolice : " << zoneTexte->font()
-            <<"\n\t\tNombre de lettres pour autocompletion : "<< zoneTexte->autoCompletionThreshold()
-           <<"\n\t\tGuide d'indentation : " << zoneTexte->indentationGuides()
-          <<"\n\t\tUtilisation des tabulation pour l'indentation : " << zoneTexte->indentationsUseTabs()
-         <<"\n\t\tAuto indentation : " << zoneTexte->autoIndent()
-        <<"\n\t\tLargeur des tabulations : "<< zoneTexte->tabWidth();
+    qDebug()<< "\tPolice : " << zoneTexte->font()
+            <<"\n\tNombre de lettres pour autocompletion : "<< zoneTexte->autoCompletionThreshold()
+           <<"\n\tGuide d'indentation : " << zoneTexte->indentationGuides()
+          <<"\n\tUtilisation des tabulation pour l'indentation : " << zoneTexte->indentationsUseTabs()
+         <<"\n\tAuto indentation : " << zoneTexte->autoIndent()
+        <<"\n\tLargeur des tabulations : "<< zoneTexte->tabWidth();
     qDebug()<< "Connection slots/signaux ...";
+
+
+
     connect(actionQuitter,SIGNAL(triggered()),this,SLOT(close()));
     connect(actionOptions,SIGNAL(triggered()),this,SLOT(affOptions()));
+    connect(actionAnnuler,SIGNAL(triggered()),zoneTexte,SLOT(undo()));
+    connect(actionRefaire,SIGNAL(triggered()),zoneTexte,SLOT(redo()));
+    connect(actionToutEffacer,SIGNAL(triggered()),zoneTexte,SLOT(clear()));
+    connect(actionTester,SIGNAL(triggered()),this,SLOT(tester()));
+    connect(actionSauvegarder,SIGNAL(triggered()),this,SLOT(sauvegarder()));
+    connect(actionCharger,SIGNAL(triggered()),this,SLOT(ouvrir()));
+    connect(actionNouveau,SIGNAL(triggered()),this,SLOT(nouveau()));
+
+      nouveau();
 
 }
 
@@ -1645,7 +1659,7 @@ void FenPrincipale::affOptions()
         fen.exec();
         param.beginGroup("rxLang");
         rxLigne = QRegExp(param.value("rxLigne").toString());
-        //Definition de la déclaration d'un nombre
+        //Definition de la déclaratio  fichier.write();n d'un nombre
         rxNbVar =  QRegExp(param.value("rxVarNb").toString());
         //Definition de la déclaration d'une chaîne
         rxTxVar = QRegExp(param.value("rxVarTx").toString());
@@ -1664,3 +1678,92 @@ void FenPrincipale::affOptions()
     }
 }
 
+void FenPrincipale::ouvrir()
+{
+    QString cheminAlgo = QFileDialog::getOpenFileName(this,"Selectionnez un algorithme à charger...",QString(),"Algorithme (*.algcrt);;Texte (*.txt);;Indéterminé (*.algcrt , *.txt);;Autre (*.*)");
+    if (cheminAlgo != QString())
+    {
+        QFile fichier(cheminAlgo);
+
+        if (fichier.exists())
+        {
+            if(fichier.open(QIODevice::ReadOnly))
+            {
+
+                QFileInfo fi(fichier);
+                nom_fichier = fi.fileName();
+                chemin_fichier = cheminAlgo;
+                changeTitreFen(this,nom_fichier);
+                zoneTexte->setText(fichier.readAll());
+                fichier.close();
+
+            }
+            else
+            {
+                alerte(this,"Impossible d'ouvrir le ficher",QString("Le fichier\n"+cheminAlgo+"\nN'a pas pu être ouvert..."));
+            }
+        }
+        else
+        {
+            alerte(this,"Impossible d'ouvrir le ficher",QString("Le fichier\n"+cheminAlgo+"\nN'existe pas...\nSi vous avez tapé manuellement le nom du fichier, verifiez que vous n'avez pas fait de fautes..."));
+        }
+    }
+}
+
+void FenPrincipale::sauvegarder()
+{
+    qDebug() << "Sauvegarde de l'Algorithme...";
+    QString cheminAlgo = QFileDialog::getSaveFileName(this,"Sauvegarde d'un algorithme",chemin_fichier,"Algorithme (*.algcrt);;Texte (*.txt);;Indéterminé (*.algcrt , *.txt);;Autre (*.*)",new QString(),QFileDialog::DontConfirmOverwrite);
+    qDebug() << "\tChemin : " << cheminAlgo ;
+    if (cheminAlgo != QString())
+    {
+        QFile fichier(cheminAlgo);
+        QFileInfo fi(fichier);
+        QString nom = fi.fileName();
+
+        if (fichier.exists() && nom != nom_fichier && ! ouiNon(this,"Ce fichier existe déjà, voulez vous l'écraser ?") )
+        {
+            qDebug() << "\tNon écrasement demandé...\nFichier non sauvé";
+            sauvegarder();
+        }
+        else
+        {
+            if(fichier.open(QIODevice::WriteOnly|QIODevice::Truncate))
+            {
+                qDebug() << "\tFichier créé / écrasé";
+                QTextStream(&fichier) << zoneTexte->text();
+
+
+                chemin_fichier = cheminAlgo;
+                nom_fichier = nom;
+
+                qDebug() << "\tRafraichissement du titre de la fenetre..."
+                         <<"\n\t\tNom du fichier : " << nom_fichier;
+
+                changeTitreFen(this,nom_fichier);
+                fichier.close();
+                info(this,"Le fichier a bien été sauvegardé !");
+
+            }
+            else
+            {
+                alerte(this,"Impossible d'ouvrir le ficher",QString("Le fichier\n"+cheminAlgo+"\nN'a pas pu être ouvert..."));
+            }
+        }
+    }
+}
+
+
+
+void FenPrincipale::nouveau()
+{
+    if(zoneTexte->text().contains("[^ \\n]") && ! ouiNon(this,"Un agorithme semble avoir été créé, il sera effacé...\nSi vous voulez le conserver, il vous suffit de le sauvegarder.\nVoulez-vous créer un nouvel algorithme ?"))
+    {}
+    else
+    {
+        zoneTexte->clear();
+        nom_fichier = "Sans Titre";
+        chemin_fichier = "";
+        changeTitreFen(this,nom_fichier);
+    }
+}
