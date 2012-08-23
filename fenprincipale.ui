@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>571</width>
-    <height>355</height>
+    <width>646</width>
+    <height>437</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -64,6 +64,97 @@
       </property>
      </widget>
     </item>
+    <item>
+     <widget class="QGroupBox" name="panneauSaisieAssist">
+      <property name="title">
+       <string>Saisie Assistée</string>
+      </property>
+      <layout class="QVBoxLayout" name="panneauSaisieAssistee">
+       <property name="leftMargin">
+        <number>5</number>
+       </property>
+       <property name="bottomMargin">
+        <number>5</number>
+       </property>
+       <item>
+        <widget class="QCommandLinkButton" name="creerVariable">
+         <property name="text">
+          <string>VARIABLE ...</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCommandLinkButton" name="creerSaisir">
+         <property name="text">
+          <string>SAISIR ...</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCommandLinkButton" name="creerAfficher">
+         <property name="text">
+          <string>AFFICHER ...</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCommandLinkButton" name="creerHasard">
+         <property name="text">
+          <string>HASARD ...</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCommandLinkButton" name="creerPartEnt">
+         <property name="text">
+          <string>PARTIE ENTIERE ...</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCommandLinkButton" name="creerConditionSimple">
+         <property name="text">
+          <string>SI ... FIN</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCommandLinkButton" name="creerConditionComplexe">
+         <property name="text">
+          <string>SI ... SINON ... FIN</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCommandLinkButton" name="creerBoucle1">
+         <property name="text">
+          <string>TANTQUE ... FIN</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCommandLinkButton" name="creerBoucle2">
+         <property name="text">
+          <string>REPETER ... JUSQU'A</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </widget>
+    </item>
    </layout>
   </widget>
   <widget class="QMenuBar" name="menuBar">
@@ -71,7 +162,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>571</width>
+     <width>646</width>
      <height>19</height>
     </rect>
    </property>
@@ -96,6 +187,7 @@
     <addaction name="actionToutEffacer"/>
     <addaction name="separator"/>
     <addaction name="actionTester"/>
+    <addaction name="actionSaisieAssistee"/>
    </widget>
    <addaction name="menuMenu"/>
    <addaction name="menuEdition"/>
@@ -113,9 +205,15 @@
    <addaction name="separator"/>
    <addaction name="actionToutEffacer"/>
    <addaction name="actionTester"/>
+   <addaction name="separator"/>
+   <addaction name="actionSaisieAssistee"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <action name="actionOptions">
+   <property name="icon">
+    <iconset resource="ressources.qrc">
+     <normaloff>:/images/options</normaloff>:/images/options</iconset>
+   </property>
    <property name="text">
     <string>Options</string>
    </property>
@@ -199,6 +297,18 @@
    </property>
    <property name="text">
     <string>Tester</string>
+   </property>
+  </action>
+  <action name="actionSaisieAssistee">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="ressources.qrc">
+     <normaloff>:/images/saisieAssistee</normaloff>:/images/saisieAssistee</iconset>
+   </property>
+   <property name="text">
+    <string>Saisie assistée</string>
    </property>
   </action>
  </widget>

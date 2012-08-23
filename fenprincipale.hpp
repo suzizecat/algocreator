@@ -95,6 +95,7 @@ protected:
     void sauvegarder();
     void ouvrir();
     void nouveau();
+    void affSaiAssistee(bool=true);
 };
 
 #endif // FENRINCIPALE_H

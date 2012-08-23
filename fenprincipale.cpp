@@ -112,7 +112,7 @@ FenPrincipale::FenPrincipale(QMainWindow *parent) : QMainWindow(parent)
         <<"\n\tLargeur des tabulations : "<< zoneTexte->tabWidth();
     qDebug()<< "Connection slots/signaux ...";
 
-
+    affSaiAssistee(false);
 
     connect(actionQuitter,SIGNAL(triggered()),this,SLOT(close()));
     connect(actionOptions,SIGNAL(triggered()),this,SLOT(affOptions()));
@@ -123,7 +123,7 @@ FenPrincipale::FenPrincipale(QMainWindow *parent) : QMainWindow(parent)
     connect(actionSauvegarder,SIGNAL(triggered()),this,SLOT(sauvegarder()));
     connect(actionCharger,SIGNAL(triggered()),this,SLOT(ouvrir()));
     connect(actionNouveau,SIGNAL(triggered()),this,SLOT(nouveau()));
-
+    connect(actionSaisieAssistee,SIGNAL(toggled(bool)),this,SLOT(affSaiAssistee(bool)));
     nouveau();
 
 }
@@ -1820,9 +1820,6 @@ void FenPrincipale::sauvegarder()
         }
     }
 }
-
-
-
 void FenPrincipale::nouveau()
 {
     if(zoneTexte->text().contains("[^ \\n]") && ! ouiNon(this,"Un agorithme semble avoir été créé, il sera effacé...\nSi vous voulez le conserver, il vous suffit de le sauvegarder.\nVoulez-vous créer un nouvel algorithme ?"))
@@ -1834,4 +1831,9 @@ void FenPrincipale::nouveau()
         chemin_fichier = "";
         changeTitreFen(this,nom_fichier);
     }
+}
+
+void FenPrincipale::affSaiAssistee(bool aff)
+{
+        panneauSaisieAssist->setVisible(aff);
 }
