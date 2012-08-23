@@ -14,7 +14,7 @@ int main(int argc, char *argv[])
     QApplication app(argc, argv);
     app.setOrganizationName("Amidemoi");
     app.setApplicationName("AlgoCreator");
-    app.setApplicationVersion("0.4 BETA");
+    app.setApplicationVersion("0.41 BETA");
     qDebug() <<"Organisation : " << app.organizationName() << "\nNom du programme : "
              << app.applicationName() << "\nVersion : " << app.applicationVersion() << "\nChemin du programme :"
                 << app.applicationDirPath();
@@ -31,7 +31,9 @@ int main(int argc, char *argv[])
     qDebug()<<"\tGraine : " << QDateTime::currentDateTime().toString("yyyyMMddhhmmsszzz");
     qDebug() << "Creation de la fenetre principale...";
     FenPrincipale principale;
+#ifdef Q_OS_LINUX
     principale.setWindowIcon(QIcon("/usr/share/icons/hicolor/128x128/apps/algocreator.png"));
+#endif
     principale.setWindowTitle("AlgoCreator v"+app.applicationVersion());
     principale.show();
     qDebug() << "Progamme lance !";
