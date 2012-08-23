@@ -15,7 +15,7 @@ FenPrincipale::FenPrincipale(QMainWindow *parent) : QMainWindow(parent)
         param.beginGroup("rxLang");
         param.setValue("rxLigne","([^\n]+)");
         param.setValue("rxVarNb","([a-zA-Z]{1}[a-zA-Z0-9_]*)(?: ?= ?([()0-9+\\-/.,*a-zA-Z _]+|([a-zA-Z]{1}[a-zA-Z0-9_]*) ?\\[([()0-9+\\-/.,*a-zA-Z _]+)\\])| est[ _]un[ _]nombre)");
-        param.setValue("rxVarTx","([a-zA-Z]{1}[a-zA-Z0-9_]*)(?: ?= ?\"([^\"]*)\"| est[ _]une[ _]cha[îi]ne)");
+        param.setValue("rxVarTx","([a-zA-Z]{1}[a-zA-Z0-9_]*)(?: ?= ?((?:\"[^\"]*\"|[a-zA-Z]{1}[a-zA-Z0-9_]*)(?: ?\\+ ?(?:\"[^\"]*\"|[a-zA-Z]{1}[a-zA-Z0-9_]*))*)+| est[ _]une[ _]cha[îi]ne)");
         param.setValue("rxVarLs","([a-zA-Z]{1}[a-zA-Z0-9_]*)(?: est[ _]une[ _]liste ?| ?\\[ ?\\])");
         param.setValue("rxModLs","([a-zA-Z]{1}[a-zA-Z0-9_]*) ?\\[([()0-9+\\-/.*a-zA-Z_]+)\\] ?= ?([^\n]+)");
         param.setValue("rxModOpSMM","([a-zA-Z]{1}[a-zA-Z0-9_]*) ?(\\<\\<|\\+=|-=|/=|\\*=|%=|\\+\\+|--) ?([()0-9+\\-/.,*a-zA-Z_ ]+|\"[^\"]*\")?");
@@ -124,7 +124,7 @@ FenPrincipale::FenPrincipale(QMainWindow *parent) : QMainWindow(parent)
     connect(actionCharger,SIGNAL(triggered()),this,SLOT(ouvrir()));
     connect(actionNouveau,SIGNAL(triggered()),this,SLOT(nouveau()));
 
-      nouveau();
+    nouveau();
 
 }
 
@@ -460,9 +460,9 @@ void FenPrincipale::tester()
             //Comme l'incrémentation se fait à la fin, il faut soustraire 1 pour avoir la bonne ligne
         }
 
-        else if(defVarNb(Lignes[i])){}   //Variables numériques
         else if(defVarTx(Lignes[i])) {}//Variables de type chaîne
         else if(defVarLs(Lignes[i])){}  //Variables de type liste
+        else if(defVarNb(Lignes[i])){}   //Variables numériques
         else if(modVarOpSurSoisMeme(Lignes[i])){} //Opération sur soi-meme
         else if(modListe(Lignes[i],true)){}  //Modifications d'une valeur d'une liste
         else if(modSaisie(Lignes[i])){}      //Saisie d'une valeur
@@ -802,36 +802,104 @@ bool FenPrincipale::defVarNb(QString ligne)
 bool FenPrincipale::defVarTx(QString ligne)
 {
     QString nvVal;
+    QRegExp concatenation = QRegExp("(?:(\"[^\"]*\")|([a-zA-Z]{1}[a-zA-Z0-9_]*))(?: ?\\+ ?(?:(\"[^\"]*\")|([a-zA-Z]{1}[a-zA-Z0-9_]*)))?");
+
+    int pos = 0;
+    //! ####A SUPPRIMER###
+    int z;
+    z = 0;
+    //! ##################
     if (rxTxVar.indexIn(ligne) != -1) //Tant qu'on trouve quelque chose...
     {
+        QString ch_tot = rxTxVar.capturedTexts()[0];
+        QString ch = rxTxVar.capturedTexts()[2];
+        QString ch_prec;
+        while(concatenation.indexIn(ch) != -1 && ch != ch_prec)
+        {
+            z++;
+            ch_prec = ch;
+            QString ch1 = concatenation.capturedTexts()[1];
+            QString var1 = concatenation.capturedTexts()[2];
+            QString ch2 = concatenation.capturedTexts()[3];
+            QString var2 = concatenation.capturedTexts()[4];
+            qDebug() << "Déclaration d'une chaine"
+                     <<"\n\tLigne : " << ch_tot
+                    <<"\n\tChaine de travail : " << ch
+                   <<"\n\tPassage No "<< z
+                  <<"\n\tVariable : " << rxTxVar.capturedTexts()[1]
+                 << "\n\tChaine : " <<  concatenation.capturedTexts()[0]
+                 << "\n\tSous chaine 1 : " <<retirerGuillemets(ch1)
+                 << "\n\tVariable 1 : " << var1
+                 << "\n\tSous chaine 2 : " << retirerGuillemets(ch2)
+                 << "\n\tVariable 2 : " << var2;
+
+            if(! ch1.isEmpty())
+            {
+                qDebug() << "\t-->Application Chaine 1";
+                nvVal = retirerGuillemets(ch1);
+            }
+            else if(! var1.isEmpty())
+            {
+                qDebug() << "\t-->Application Variable 1";
+                if(TxVar.contains(var1))
+                    nvVal = TxVal[TxVar.indexOf(var1)];
+                else if (NbVar.contains(var1))
+                    nvVal = NbVal[NbVar.indexOf(var1)].toString();
+            }
+            if(! ch2.isEmpty())
+            {
+                qDebug() << "\t-->Application Chaine 2";
+                nvVal += retirerGuillemets(ch2) ;
+            }
+            else if(! var2.isEmpty())
+            {
+                qDebug() << "\t-->Application Variable 2";
+                if(TxVar.contains(var2))
+                    nvVal += TxVal[TxVar.indexOf(var2)] ;
+                else if (NbVar.contains(var2))
+                    nvVal += NbVal[NbVar.indexOf(var2)].toString() ;
+            }
+
+            ch_tot.replace(concatenation.capturedTexts()[0],QString("\"" +nvVal+"\""));
+
+            if(rxTxVar.indexIn(ch_tot) != -1)
+            {
+
+               ch_tot = rxTxVar.capturedTexts()[0];
+                ch = rxTxVar.capturedTexts()[2];
+
+            }
+            qDebug() << "\tResultat, ligne : " << ch_tot;
+        }
+
         if(TxVar.contains(rxTxVar.capturedTexts()[1]))
         {
 
-            if (rxTxVar.capturedTexts()[2] == "")
+            /*  if (rxTxVar.capturedTexts()[2] == "")
             {
                 TxVal.replace(TxVar.indexOf(QString(rxTxVar.capturedTexts()[1])),"") ;
                 ActFinales << "[M](C)"+TxVar.value(TxVar.indexOf(QString(rxTxVar.capturedTexts().at(1)))) + "="+ TxVal.value(TxVar.indexOf(QString(rxTxVar.capturedTexts().at(1))));
 
             }
             else
-            {
-                TxVal.replace(TxVar.indexOf(QString(rxTxVar.capturedTexts().at(1))),rxTxVar.capturedTexts().at(2)); // On ajoute la valeur de la variable au tableau correspondant
-                ActFinales << "[M](C)"+TxVar.value(TxVar.indexOf(QString(rxTxVar.capturedTexts().at(1)))) + "="+ TxVal.value(TxVar.indexOf(QString(rxTxVar.capturedTexts().at(1))));
-            }
+            {*/
+            TxVal[TxVar.indexOf(QString(rxTxVar.capturedTexts()[1]))] = nvVal;
+            ActFinales << "[M](C)"+TxVar.value(TxVar.indexOf(QString(rxTxVar.capturedTexts().at(1)))) + "="+ TxVal.value(TxVar.indexOf(QString(rxTxVar.capturedTexts().at(1))));
+            //}
         }
         else
         {
-            TxVar << rxTxVar.capturedTexts().at(1); // On ajoute le nom de la variable au tableau correspondant
-            if (rxTxVar.capturedTexts().at(2) == "")
+            TxVar << rxTxVar.capturedTexts()[1]; // On ajoute le nom de la variable au tableau correspondant
+            /*if (rxTxVar.capturedTexts().at(2) == "")
             {
                 TxVal << QString("") ;
                 ActFinales << "[I](C)"+TxVar.last() + "="+ TxVal.last();
             }
             else
-            {
-                TxVal << rxTxVar.capturedTexts().at(2); // On ajoute la valeur de la variable au tableau correspondant
-                ActFinales << "[I](C)"+TxVar.last() + "="+ TxVal.last();
-            }
+            {*/
+            TxVal << nvVal; // On ajoute la valeur de la variable au tableau correspondant
+            ActFinales << "[I](C)"+TxVar.last() + "="+ TxVal.last();
+            // }
         }
         return true;
     }
