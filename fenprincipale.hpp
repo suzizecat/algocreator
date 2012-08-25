@@ -6,6 +6,7 @@
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QTextStream>
+#include <QButtonGroup>
 
 
 #include <Qsci/qsciapis.h>
@@ -14,6 +15,11 @@
 
 #include "fenoptions.hpp"
 #include "ui_fenprincipale.h"
+#include "assistcreationvar.hpp"
+#include "assistfonctionsvarsimples.hpp"
+#include "assistfonctionsconditions.hpp"
+#include "assistfonctionhasard.hpp"
+
 
 
 class FenPrincipale : public QMainWindow, private Ui::FenPrincipale
@@ -25,8 +31,11 @@ public:
 
 
 protected:
+
+    QButtonGroup *btnsSaiAssist;
     QString nom_fichier;
     QString chemin_fichier;
+
 
     QString def_rxVariable; //Bout de Regex : un nom de variable
     QString def_rxValListe; //Bout de Regex : valeur d'un indice dans une liste
@@ -90,12 +99,13 @@ protected:
 
 
  public slots :
-    void tester();
+    void tester(bool executer = true);
     void affOptions();
     void sauvegarder();
     void ouvrir();
     void nouveau();
     void affSaiAssistee(bool=true);
+    void assisteSaisie(int);
 };
 
 #endif // FENRINCIPALE_H
