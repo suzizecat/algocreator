@@ -13,7 +13,7 @@ FenPrincipale::FenPrincipale(QMainWindow *parent) : QMainWindow(parent)
     {
         qDebug() << "Initialisation des parametres ...";
         param.beginGroup("rxLang");
-        param.setValue("rxLigne","([^\n]+)");
+        param.setValue("rxLigne","([^\n]*)\n");
         param.setValue("rxVarNb","([a-zA-Z]{1}[a-zA-Z0-9_]*)(?: ?= ?([()0-9+\\-/.,*a-zA-Z _]+|([a-zA-Z]{1}[a-zA-Z0-9_]*) ?\\[([()0-9+\\-/.,*a-zA-Z _]+)\\])| est[ _]un[ _]nombre) *#!\\?F_LN");
         param.setValue("rxVarTx","([a-zA-Z]{1}[a-zA-Z0-9_]*)(?: ?= ?((?:\"[^\"]*\"|[a-zA-Z]{1}[a-zA-Z0-9_]*)(?: ?\\+ ?(?:\"[^\"]*\"|[a-zA-Z]{1}[a-zA-Z0-9_]*))*)+| est[ _]une[ _]cha[îi]ne) *#!\\?F_LN");
         param.setValue("rxVarLs","([a-zA-Z]{1}[a-zA-Z0-9_]*)(?: est[ _]une[ _]liste ?| ?\\[ ?\\]) *#!\\?F_LN");
@@ -150,7 +150,7 @@ FenPrincipale::FenPrincipale(QMainWindow *parent) : QMainWindow(parent)
 void FenPrincipale::tester( bool executer )
 {
 
-    qDebug()<<"Test lance...\n(Re)Initialisation des variables...";
+    qDebug()<<"Test lance...\nInitialisation des variables...";
     //On efface les affichages et l'historique
     affListeVar->clear();
     ActFinales.clear();
@@ -229,17 +229,38 @@ void FenPrincipale::tester( bool executer )
 
     //On créé une variable nombre que l'utilisateur ne verra pas.
     //Cette valeur sera utilisée notament pour les conditions (pour avoir une valeur fixe...)
-    contenu =  "VALUNIQUExNB = 0\n"+ zoneTexte->text();
 
 
-
-
+    contenu += "\n";
+    qDebug() << "Génération du tableau de lignes...";
+    Lignes <<  "VALUNIQUExNB = 0 #!?F_LN";
     //On récupère chaque ligne pour un controle plus facile
     while( (pos = rxLigne.indexIn(contenu,pos)) != -1 )
     {
-        Lignes << QString(rxLigne.capturedTexts()[1] + " #!?F_LN");
-        pos += rxLigne.matchedLength();
+
+        if(rxLigne.capturedTexts()[1]=="" && Lignes.length() == 0 && rxLigne.matchedLength() < contenu.length())
+        {
+            contenu.remove(0,rxLigne.matchedLength());
+            qDebug() << "\tRetrait d'une ligne superflue " << rxLigne.matchedLength();
+
+            zoneTexte->setText(contenu);
+            pos=0;
+        }
+        else //if (rxLigne.capturedTexts()[1]!="")
+        {
+            qDebug() << "\tLigne trouvee, ajout dans le tableau : " << rxLigne.capturedTexts()[1];
+
+            Lignes << QString(rxLigne.capturedTexts()[1] + " #!?F_LN");
+
+            pos += rxLigne.matchedLength();
+        }
+        /* else
+        {
+            pos += rxLigne.matchedLength();
+        }*/
     }
+
+
     pos=0;
 
 
@@ -496,7 +517,7 @@ void FenPrincipale::tester( bool executer )
                 {
                     dansBoucle2 = true;
                     pos_origBoucle = i;
-                }
+                }  qDebug() << rxNbVar.capturedTexts().at(1);
 
             }
             else if(QRegExp("DEBUG").indexIn(Lignes[i]) != -1)
@@ -514,6 +535,7 @@ void FenPrincipale::tester( bool executer )
 
 
             }
+
         }
         else
         {
@@ -533,6 +555,7 @@ void FenPrincipale::tester( bool executer )
 
     for (int i = 1 ; i < NbVar.size() ; i++)
     {
+        qDebug() << i;
         affListeVar->addItem(QString("NOMBRE " + NbVar.at(i) + " = " + NbVal.at(i).toString()));
     }
     for (int i = 0 ; i < TxVar.size() ; i++)
@@ -784,7 +807,11 @@ bool FenPrincipale::defVarNb(QString ligne)
 
     if ( rxNbVar.exactMatch(ligne) != -1) //S'il y a qqch
     {
-        if(NbVar.contains(rxNbVar.capturedTexts().at(1))) // Si la variable existe déjà...
+        if(rxNbVar.capturedTexts()[1] == "")
+        {
+            return false;
+        }
+        else if(NbVar.contains(rxNbVar.capturedTexts().at(1))) // Si la variable existe déjà...
         {
 
             if (rxNbVar.capturedTexts()[2] == "") //Si on a écrit '<var> est un nombre'
@@ -810,6 +837,7 @@ bool FenPrincipale::defVarNb(QString ligne)
         }
         else // Si on créé la variable
         {
+
             NbVar << rxNbVar.capturedTexts().at(1); // On ajoute le nom de la variable au tableau correspondant
             if (rxNbVar.capturedTexts().at(2) == "") //Si on a écrit '<var> est un nombre'
             {
@@ -1872,6 +1900,15 @@ void FenPrincipale::assisteSaisie(int fonction)
              << "\n\tBouton ( fonction ) : " << fonction
              << "\n\tTest pour mise à jour liste var";
     tester(false);
+    int ligneCurseur;
+    int indexCurseur;
+    zoneTexte->getCursorPosition(&ligneCurseur,&indexCurseur);
+    int pos = zoneTexte->positionFromLineIndex(ligneCurseur,indexCurseur);
+    QRegExp rx = QRegExp("([^\n])\n");
+    if(rx.indexIn(zoneTexte->text(),pos) != -1)
+    {
+        pos = rx.matchedLength();
+    }
     QString aAjouter;
     QList<QStringList> ensembleVariables;
 
@@ -1903,6 +1940,6 @@ void FenPrincipale::assisteSaisie(int fonction)
 
     }
     if( !aAjouter.isEmpty())
-        zoneTexte->append(QString("\n"+aAjouter+"\n"));
+        zoneTexte->insertAt(QString("\n"+aAjouter+"\n"),ligneCurseur,indexCurseur+pos-1);
 
 }
