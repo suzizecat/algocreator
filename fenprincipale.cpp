@@ -874,74 +874,74 @@ bool FenPrincipale::defVarTx(QString ligne)
             QString ch_prec;
             if(concatenation.indexIn(ch) != -1)
             {
-            while(concatenation.indexIn(ch) != -1 && ch != ch_prec)
-            {
-                ch_prec = ch;
-                QString ch1 = concatenation.capturedTexts()[1];
-                QString var1 = concatenation.capturedTexts()[2];
-                QString ch2 = concatenation.capturedTexts()[3];
-                QString var2 = concatenation.capturedTexts()[4];
-                qDebug() << "Concaténation d'une chaine"
-                         <<"\n\tLigne : " << ch_tot
-                        <<"\n\tChaine de travail : " << ch
-                       <<"\n\tVariable : " << rxTxVar.capturedTexts()[1]
-                      << "\n\tChaine : " <<  concatenation.capturedTexts()[0]
-                      << "\n\tSous chaine 1 : " <<retirerGuillemets(ch1)
-                      << "\n\tVariable 1 : " << var1
-                      << "\n\tSous chaine 2 : " << retirerGuillemets(ch2)
-                      << "\n\tVariable 2 : " << var2;
+                while(concatenation.indexIn(ch) != -1 && ch != ch_prec)
+                {
+                    ch_prec = ch;
+                    QString ch1 = concatenation.capturedTexts()[1];
+                    QString var1 = concatenation.capturedTexts()[2];
+                    QString ch2 = concatenation.capturedTexts()[3];
+                    QString var2 = concatenation.capturedTexts()[4];
+                    qDebug() << "Concaténation d'une chaine"
+                             <<"\n\tLigne : " << ch_tot
+                            <<"\n\tChaine de travail : " << ch
+                           <<"\n\tVariable : " << rxTxVar.capturedTexts()[1]
+                          << "\n\tChaine : " <<  concatenation.capturedTexts()[0]
+                          << "\n\tSous chaine 1 : " <<retirerGuillemets(ch1)
+                          << "\n\tVariable 1 : " << var1
+                          << "\n\tSous chaine 2 : " << retirerGuillemets(ch2)
+                          << "\n\tVariable 2 : " << var2;
 
-                if(! ch1.isEmpty())
-                {
-                    qDebug() << "\t-->Application Chaine 1";
-                    nvVal = retirerGuillemets(ch1);
-                }
-                else if(! var1.isEmpty() && ! var1.contains("HASARD"))
-                {
-                    qDebug() << "\t-->Application Variable 1";
-                    if(TxVar.contains(var1))
-                        nvVal = TxVal[TxVar.indexOf(var1)];
-                    else if (NbVar.contains(var1))
-                        nvVal = NbVal[NbVar.indexOf(var1)].toString();
-                }
-                else
-                {
-                    return false;
-                }
+                    if(! ch1.isEmpty())
+                    {
+                        qDebug() << "\t-->Application Chaine 1";
+                        nvVal = retirerGuillemets(ch1);
+                    }
+                    else if(! var1.isEmpty() && ! var1.contains("HASARD"))
+                    {
+                        qDebug() << "\t-->Application Variable 1";
+                        if(TxVar.contains(var1))
+                            nvVal = TxVal[TxVar.indexOf(var1)];
+                        else if (NbVar.contains(var1))
+                            nvVal = NbVal[NbVar.indexOf(var1)].toString();
+                    }
+                    else
+                    {
+                        return false;
+                    }
 
-                if(! ch2.isEmpty())
-                {
-                    qDebug() << "\t-->Application Chaine 2";
-                    nvVal += retirerGuillemets(ch2) ;
-                }
-                else if(! var2.isEmpty()&& ! var2.contains("HASARD"))
-                {
-                    qDebug() << "\t-->Application Variable 2";
-                    if(TxVar.contains(var2))
-                        nvVal += TxVal[TxVar.indexOf(var2)] ;
-                    else if (NbVar.contains(var2))
-                        nvVal += NbVal[NbVar.indexOf(var2)].toString() ;
-                }
-                else
-                {
-                    return false;
-                }
+                    if(! ch2.isEmpty())
+                    {
+                        qDebug() << "\t-->Application Chaine 2";
+                        nvVal += retirerGuillemets(ch2) ;
+                    }
+                    else if(! var2.isEmpty()&& ! var2.contains("HASARD"))
+                    {
+                        qDebug() << "\t-->Application Variable 2";
+                        if(TxVar.contains(var2))
+                            nvVal += TxVal[TxVar.indexOf(var2)] ;
+                        else if (NbVar.contains(var2))
+                            nvVal += NbVal[NbVar.indexOf(var2)].toString() ;
+                    }
+                    else
+                    {
+                        return false;
+                    }
 
-                ch_tot.replace(concatenation.capturedTexts()[0],QString("\"" +nvVal+"\""));
+                    ch_tot.replace(concatenation.capturedTexts()[0],QString("\"" +nvVal+"\""));
 
-                if(rxTxVar.indexIn(ch_tot) != -1)
-                {
+                    if(rxTxVar.indexIn(ch_tot) != -1)
+                    {
 
-                    ch_tot = rxTxVar.capturedTexts()[0];
-                    ch = rxTxVar.capturedTexts()[2];
+                        ch_tot = rxTxVar.capturedTexts()[0];
+                        ch = rxTxVar.capturedTexts()[2];
 
+                    }
+                    qDebug() << "\tResultat, ligne : " << ch_tot;
                 }
-                qDebug() << "\tResultat, ligne : " << ch_tot;
-            }
             }
             else
             {
-             nvVal = retirerGuillemets(rxTxVar.capturedTexts()[2]);
+                nvVal = retirerGuillemets(rxTxVar.capturedTexts()[2]);
             }
             if(TxVar.contains(rxTxVar.capturedTexts()[1]))
             {
@@ -954,9 +954,9 @@ bool FenPrincipale::defVarTx(QString ligne)
             }
             else
             {
-                 qDebug() << "\n\tNouvelle chaine"
-                          << "\n\t\tVariable : " << rxTxVar.capturedTexts()[1]
-                          << "\n\t\tValeur : " << nvVal;
+                qDebug() << "\n\tNouvelle chaine"
+                         << "\n\t\tVariable : " << rxTxVar.capturedTexts()[1]
+                         << "\n\t\tValeur : " << nvVal;
                 TxVar << rxTxVar.capturedTexts()[1]; // On ajoute le nom de la variable au tableau correspondant
 
                 TxVal << nvVal; // On ajoute la valeur de la variable au tableau correspondant
@@ -1003,11 +1003,13 @@ bool FenPrincipale::modVarOpSurSoisMeme(QString ligne)
         QString var = rxVarOpSurSoisMeme.capturedTexts()[1];
         QString val = rxVarOpSurSoisMeme.capturedTexts()[3];
 
-        while(val[0] == ' ')
+        if( ! QRegExp("\"([^\"]*)\"").exactMatch(val))
         {
-            val.remove(0,1);
+            while(val.contains(" "))
+            {
+                val.remove(" ");
+            }
         }
-
         qDebug() <<"\tOperation : "<< var << signe << val;
 
         if(signe == "<<")
@@ -1068,14 +1070,17 @@ bool FenPrincipale::modVarOpSurSoisMeme(QString ligne)
         {
             if(LsVar.contains(var))
             {
+                qDebug() << "\t\tAffecte une liste";
                 if(QRegExp("\"([^\"]*)\"|-?\\d+(?:\\.|,)?\\d*").exactMatch(val))
                 {
                     LsVal[LsVar.indexOf(var)] << retirerGuillemets(val);
                 }
                 else if (QRegExp("[a-zA-Z]{1}[a-zA-Z0-9_]*").exactMatch(val))
                 {
+                    qDebug() << "\t\tAjout d'une variable : " << val;
                     if(NbVar.contains(val))
                     {
+
                         LsVal[LsVar.indexOf(var)] << NbVal[NbVar.indexOf(val)];
                     }
                     else if(TxVar.contains(val))
