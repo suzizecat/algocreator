@@ -862,7 +862,7 @@ bool FenPrincipale::defVarNb(QString ligne)
 bool FenPrincipale::defVarTx(QString ligne)
 {
     QString nvVal;
-    QRegExp concatenation = QRegExp("(?:(\"[^\"]*\")|([a-zA-Z]{1}[a-zA-Z0-9_]*))(?: ?\\+ ?(?:(\"[^\"]*\")|([a-zA-Z]{1}[a-zA-Z0-9_]*)))?");
+    QRegExp concatenation = QRegExp("(?:(\"[^\"]*\")|([a-zA-Z]{1}[a-zA-Z0-9_]*))(?: ?\\+ ?(?:(\"[^\"]*\")|([a-zA-Z]{1}[a-zA-Z0-9_]*)))+");
 
 
     if( ! LsVar.contains(rxTxVar.capturedTexts()[1]) &&  ! NbVar.contains(rxTxVar.capturedTexts()[1]))
@@ -872,6 +872,8 @@ bool FenPrincipale::defVarTx(QString ligne)
             QString ch_tot = rxTxVar.capturedTexts()[0];
             QString ch = rxTxVar.capturedTexts()[2];
             QString ch_prec;
+            if(concatenation.indexIn(ch) != -1)
+            {
             while(concatenation.indexIn(ch) != -1 && ch != ch_prec)
             {
                 ch_prec = ch;
@@ -879,7 +881,7 @@ bool FenPrincipale::defVarTx(QString ligne)
                 QString var1 = concatenation.capturedTexts()[2];
                 QString ch2 = concatenation.capturedTexts()[3];
                 QString var2 = concatenation.capturedTexts()[4];
-                qDebug() << "Déclaration d'une chaine"
+                qDebug() << "Concaténation d'une chaine"
                          <<"\n\tLigne : " << ch_tot
                         <<"\n\tChaine de travail : " << ch
                        <<"\n\tVariable : " << rxTxVar.capturedTexts()[1]
@@ -936,16 +938,25 @@ bool FenPrincipale::defVarTx(QString ligne)
                 }
                 qDebug() << "\tResultat, ligne : " << ch_tot;
             }
-
+            }
+            else
+            {
+             nvVal = retirerGuillemets(rxTxVar.capturedTexts()[2]);
+            }
             if(TxVar.contains(rxTxVar.capturedTexts()[1]))
             {
-
+                qDebug() << "\n\tChaine existante"
+                         << "\n\t\tVariable : " << rxTxVar.capturedTexts()[1]
+                         << "\n\t\tValeur : " << nvVal;
                 TxVal[TxVar.indexOf(QString(rxTxVar.capturedTexts()[1]))] = nvVal;
                 ActFinales << "[M](C)"+TxVar.value(TxVar.indexOf(QString(rxTxVar.capturedTexts().at(1)))) + "="+ TxVal.value(TxVar.indexOf(QString(rxTxVar.capturedTexts().at(1))));
 
             }
             else
             {
+                 qDebug() << "\n\tNouvelle chaine"
+                          << "\n\t\tVariable : " << rxTxVar.capturedTexts()[1]
+                          << "\n\t\tValeur : " << nvVal;
                 TxVar << rxTxVar.capturedTexts()[1]; // On ajoute le nom de la variable au tableau correspondant
 
                 TxVal << nvVal; // On ajoute la valeur de la variable au tableau correspondant
