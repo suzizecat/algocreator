@@ -136,12 +136,6 @@ FenPrincipale::FenPrincipale(QMainWindow *parent) : QMainWindow(parent)
     connect(actionNouveau,SIGNAL(triggered()),this,SLOT(nouveau()));
     connect(actionSaisieAssistee,SIGNAL(toggled(bool)),this,SLOT(affSaiAssistee(bool)));
 
-
-
-    /* int x = 1;
-    connect(creerSaisir,SIGNAL(clicked()), signalMapper, SLOT(map()));
-             signalMapper->setMapping(creerSaisir, x);
-    connect(signalMapper, SIGNAL(mapped(int)),this, SIGNAL(assisteSaisie(int)));*/
     connect(btnsSaiAssist,SIGNAL(buttonClicked(int)), this, SLOT(assisteSaisie(int)));
     nouveau();
 
@@ -172,6 +166,12 @@ void FenPrincipale::tester( bool executer )
     int pos_boucle = -1;    // Position de la fin d'une boucle
     int pos_origBoucle = -1;// Position du début d'une boucle
     dansBoucle2= false;
+    //! ####################################
+    //!    QList<int> lsPosFinBoucle;
+    //!    QList<int> lsPosDebutBoucle;
+    //!    QList<bool> etapeDansBoucle2;
+
+    //!  ###################################
 
     qDebug()<<"Recuperation de l'algo...";
     QString contenu = zoneTexte->text(); //On récupère l'algorithme
@@ -254,21 +254,13 @@ void FenPrincipale::tester( bool executer )
 
             pos += rxLigne.matchedLength();
         }
-        /* else
-        {
-            pos += rxLigne.matchedLength();
-        }*/
     }
-
 
     pos=0;
 
-
-
-
     // ########################################
     // Recherches des definitions des variables
-
+    //Lancement du test réel
     for (int i=0; i<Lignes.length();i++)
     {
 
@@ -281,8 +273,6 @@ void FenPrincipale::tester( bool executer )
                     //On se replace au début de la boucle, à TANT QUE ... FAIRE
                     //Ainsi, si on doit sauter la boucle, on la saute et on remet les variables à -1
                     i=pos_origBoucle;
-
-
                 }
             }
 
@@ -295,9 +285,8 @@ void FenPrincipale::tester( bool executer )
 
             //Si on rencontre un condition fausse
             //On va sauter toutes les actions jusqu'à un "sinon" ( condition vraie) ou la fin de la condition.
-            if(execCondition(Lignes[i]) == 0 && executer)
+            if(execCondition(Lignes[i]) == 0)
             {
-
                 pos=i+1; // On prend la position +1 ( on saute la ligne définissant la condition
                 niveau_condition=1; //Le niveau correspond au nombre de condition dans lesquelles nous sommes rentrés
                 //Celui-ci est à 1 Pour la condition primaire
@@ -305,7 +294,6 @@ void FenPrincipale::tester( bool executer )
 
                 while (niveau_condition > 0 && pos < Lignes.count())
                 {
-
                     if(rxCondition.indexIn(Lignes[pos]) != -1)
                     {
                         niveau_condition ++; //Si on entre dans une autre condition, on augment le niveau
@@ -334,13 +322,11 @@ void FenPrincipale::tester( bool executer )
 
                     pos++; // On passe à la ligne suivante
                 }
-
                 i = pos-1; //Comme l'incrémentation se fait à la fin, il faut soustraire 1 pour avoir la bonne ligne
-
             }
             //Si on rencontre une condition vraie
             //On va supprimer ou rendre inactif tout le code qui ne sera pas executé
-            else if(execCondition(Lignes[i]) == 1 && executer)
+            else if(execCondition(Lignes[i]) == 1)
             {
 
                 Lignes.removeAt(i); // On retire la ligne définissant la condition
@@ -390,7 +376,7 @@ void FenPrincipale::tester( bool executer )
 
             }
             //Si on entre pas dans la boucle, on traite de la meme façon qu'avec une condition fausse
-            else if(execBoucle(Lignes[i]) == 0 && executer)
+            else if(execBoucle(Lignes[i]) == 0)
             {
 
                 //Le traitement des boucles "REPETER" est inversé par rapport aux autres, ici on reboucle
@@ -440,7 +426,7 @@ void FenPrincipale::tester( bool executer )
                 }
             }
 
-            else if(execBoucle(Lignes[i]) == 1 && executer) // Si on entre dans une boucle à executer,
+            else if(execBoucle(Lignes[i]) == 1) // Si on entre dans une boucle à executer,
             {
                 //Le traitement des boucles "REPETER" est inversé par rapport aux autres, ici on sort
                 if(dansBoucle2)
@@ -511,7 +497,7 @@ void FenPrincipale::tester( bool executer )
             else if(modListe(Lignes[i],true)){}  //Modifications d'une valeur d'une liste
             else if(modSaisie(Lignes[i])){}      //Saisie d'une valeur
             else if(affVal(Lignes[i])){} //Affichage d'une valeur
-            else if(QRegExp("REPETER").indexIn(Lignes[i]) != -1 && executer)
+            else if(QRegExp("REPETER").indexIn(Lignes[i]) != -1)
             {
                 if( ! dansBoucle2)
                 {
@@ -545,14 +531,6 @@ void FenPrincipale::tester( bool executer )
         }
     }
 
-
-
-
-
-
-
-
-
     for (int i = 1 ; i < NbVar.size() ; i++)
     {
         qDebug() << i;
@@ -583,7 +561,6 @@ void FenPrincipale::tester( bool executer )
     //        {
     //            affListeVar->addItem(QString(Lignes.at(i) ));
     //        }
-
 
 }
 
@@ -800,7 +777,6 @@ QVariant FenPrincipale::recupValListe(QString ch)
     }
 }
 
-
 bool FenPrincipale::defVarNb(QString ligne)
 {
     QString nvVal;
@@ -859,6 +835,7 @@ bool FenPrincipale::defVarNb(QString ligne)
         return false;
     }
 }
+
 bool FenPrincipale::defVarTx(QString ligne)
 {
     QString nvVal;
@@ -975,6 +952,7 @@ bool FenPrincipale::defVarTx(QString ligne)
         return false;
     }
 }
+
 bool FenPrincipale::defVarLs(QString ligne)
 {
     if (rxLsVar.indexIn(ligne) != -1 && ! LsVar.contains(rxLsVar.capturedTexts()[1])) //Si on trouve qqch et qu'on a pas déclaré la liste
@@ -992,6 +970,7 @@ bool FenPrincipale::defVarLs(QString ligne)
         return false;
     }
 }
+
 
 bool FenPrincipale::modVarOpSurSoisMeme(QString ligne)
 {
@@ -1257,6 +1236,7 @@ bool FenPrincipale::modVarOpSurSoisMeme(QString ligne)
     }
 
 }
+
 bool FenPrincipale::modSaisie (QString ligne)
 {
     QInputDialog dialog;
@@ -1364,6 +1344,7 @@ bool FenPrincipale::modSaisie (QString ligne)
     }
 }
 
+
 bool FenPrincipale::modListe(QString ligne, bool creer_si_innexistant)
 {
     if (rxModifListe.indexIn(ligne) != -1)
@@ -1400,6 +1381,7 @@ bool FenPrincipale::modListe(QString ligne, bool creer_si_innexistant)
         return false;
     }
 }
+
 bool FenPrincipale::modListe(QString liste, int indice, QVariant valeur, bool creer_si_innexistant)
 {
 
@@ -1477,6 +1459,7 @@ bool FenPrincipale::affVal(QString ligne)
         return false;
     }
 }
+
 
 int FenPrincipale::execCondition(QString ligne)
 {
@@ -1783,6 +1766,7 @@ int FenPrincipale::execBoucle(QString ligne)
     return res;
 }
 
+
 void FenPrincipale::affOptions()
 {
     QSettings param;
@@ -1892,6 +1876,7 @@ void FenPrincipale::sauvegarder()
         }
     }
 }
+
 void FenPrincipale::nouveau()
 {
     if(zoneTexte->text().contains("[^ \\n]") && ! ouiNon(this,"Un agorithme semble avoir été créé, il sera effacé...\nSi vous voulez le conserver, il vous suffit de le sauvegarder.\nVoulez-vous créer un nouvel algorithme ?"))
@@ -1956,6 +1941,6 @@ void FenPrincipale::assisteSaisie(int fonction)
 
     }
     if( !aAjouter.isEmpty())
-        zoneTexte->insertAt(QString("\n"+aAjouter+"\n"),ligneCurseur,indexCurseur+pos-1);
+        zoneTexte->insertAt(QString(aAjouter+"\n"),ligneCurseur+2,indexCurseur);
 
 }
