@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>646</width>
-    <height>437</height>
+    <height>444</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -175,6 +175,7 @@
     <addaction name="actionCharger"/>
     <addaction name="separator"/>
     <addaction name="actionOptions"/>
+    <addaction name="actionImprimer"/>
     <addaction name="separator"/>
     <addaction name="actionQuitter"/>
    </widget>
@@ -202,6 +203,7 @@
    <addaction name="actionNouveau"/>
    <addaction name="actionSauvegarder"/>
    <addaction name="actionCharger"/>
+   <addaction name="actionImprimer"/>
    <addaction name="separator"/>
    <addaction name="actionToutEffacer"/>
    <addaction name="actionTester"/>
@@ -309,6 +311,15 @@
    </property>
    <property name="text">
     <string>Saisie assistée</string>
+   </property>
+  </action>
+  <action name="actionImprimer">
+   <property name="icon">
+    <iconset resource="ressources.qrc">
+     <normaloff>:/images/imprimer</normaloff>:/images/imprimer</iconset>
+   </property>
+   <property name="text">
+    <string>Imprimer</string>
    </property>
   </action>
  </widget>
