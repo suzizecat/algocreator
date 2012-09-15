@@ -134,6 +134,7 @@ FenPrincipale::FenPrincipale(QMainWindow *parent) : QMainWindow(parent)
     connect(actionSauvegarder,SIGNAL(triggered()),this,SLOT(sauvegarder()));
     connect(actionCharger,SIGNAL(triggered()),this,SLOT(ouvrir()));
     connect(actionNouveau,SIGNAL(triggered()),this,SLOT(nouveau()));
+    connect(actionImprimer,SIGNAL(triggered()),this,SLOT(imprimer()));
     connect(actionSaisieAssistee,SIGNAL(toggled(bool)),this,SLOT(affSaiAssistee(bool)));
 
     connect(btnsSaiAssist,SIGNAL(buttonClicked(int)), this, SLOT(assisteSaisie(int)));
@@ -1940,4 +1941,16 @@ void FenPrincipale::assisteSaisie(int fonction)
     if( !aAjouter.isEmpty())
         zoneTexte->insertAt(QString(aAjouter+"\n"),ligneCurseur+2,0);
 
+}
+
+void FenPrincipale::imprimer()
+{
+    QsciPrinter* printer = new QsciPrinter; // création du moteur d'impression
+
+    QPrintDialog printDialog(printer); // ouverture de la boîte de dialogue
+    if(printDialog.exec() == QDialog::Accepted) // si l'impression est acceptée,
+    {
+        printer->printRange(zoneTexte); // impression du contenu du QsciScintilla
+
+    }
 }

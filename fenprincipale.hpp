@@ -4,12 +4,14 @@
 #include <QMainWindow>
 #include <QList>
 #include <QFileDialog>
+#include <QPrintDialog>
 #include <QFileInfo>
 #include <QTextStream>
 #include <QButtonGroup>
 
 
 #include <Qsci/qsciapis.h>
+#include <Qsci/qsciprinter.h>
 #include <Qsci/qscilexercpp.h>
 #include "qscilexeralgo.hpp"
 
@@ -102,6 +104,7 @@ protected:
     void tester(bool executer = true);
     void affOptions();
     void sauvegarder();
+    void imprimer();
     void ouvrir();
     void nouveau();
     void affSaiAssistee(bool=true);
