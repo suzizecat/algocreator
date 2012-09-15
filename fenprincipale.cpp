@@ -919,6 +919,8 @@ bool FenPrincipale::defVarTx(QString ligne)
             else
             {
                 nvVal = retirerGuillemets(rxTxVar.capturedTexts()[2]);
+                if(nvVal == "HASARD")
+                    return false;
             }
             if(TxVar.contains(rxTxVar.capturedTexts()[1]))
             {
@@ -1904,12 +1906,7 @@ void FenPrincipale::assisteSaisie(int fonction)
     int ligneCurseur;
     int indexCurseur;
     zoneTexte->getCursorPosition(&ligneCurseur,&indexCurseur);
-    int pos = zoneTexte->positionFromLineIndex(ligneCurseur,indexCurseur);
-    QRegExp rx = QRegExp("([^\n])\n");
-    if(rx.indexIn(zoneTexte->text(),pos) != -1)
-    {
-        pos = rx.matchedLength();
-    }
+
     QString aAjouter;
     QList<QStringList> ensembleVariables;
 
@@ -1941,6 +1938,6 @@ void FenPrincipale::assisteSaisie(int fonction)
 
     }
     if( !aAjouter.isEmpty())
-        zoneTexte->insertAt(QString(aAjouter+"\n"),ligneCurseur+2,indexCurseur);
+        zoneTexte->insertAt(QString(aAjouter+"\n"),ligneCurseur+2,0);
 
 }
