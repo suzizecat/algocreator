@@ -12,6 +12,7 @@
         <file alias="tester">icones/script_go.png</file>
         <file alias="options">icones/wrench.png</file>
         <file alias="saisieAssistee">icones/keyboard_add.png</file>
+        <file alias="logo">logo.jpg</file>
     </qresource>
     <qresource prefix="/textes">
         <file alias="apiLang">langage.api</file>

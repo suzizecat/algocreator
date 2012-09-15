@@ -31,9 +31,9 @@ int main(int argc, char *argv[])
     qDebug()<<"\tGraine : " << QDateTime::currentDateTime().toString("yyyyMMddhhmmsszzz");
     qDebug() << "Creation de la fenetre principale...";
     FenPrincipale principale;
-#ifdef Q_OS_LINUX
-    principale.setWindowIcon(QIcon("/usr/share/icons/hicolor/128x128/apps/algocreator.png"));
-#endif
+
+    principale.setWindowIcon(QIcon(":/images/logo"));
+
     principale.setWindowTitle("AlgoCreator v"+app.applicationVersion());
     principale.show();
     qDebug() << "Progamme lance !";
