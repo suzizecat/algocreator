@@ -235,7 +235,7 @@ const char *QsciLexerAlgo::keywords(int set) const
         return
             "SAISIR << est_un_nombre  "
             "est_un_nombre est_une_chaine est une_liste nombre chaine liste est un une"
-            "SI REPETER TANT QUE TANTQUE"
+            "SI REPETER TANT QUE TANTQUE FIN AFFICHER HASARD FAIRE "
             "!= <= >= == < >";
 
 
