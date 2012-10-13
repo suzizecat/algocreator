@@ -357,6 +357,7 @@ void FenPrincipale::tester( bool executer )
                         if (niveau_condition == 1)      //Si on rencontre un "sinon" et qu'on est dans la principale
                             //( condition fausse )
                         {
+
                             Lignes[pos]="SI VALUNIQUExNB == 1 ALORS "; // On le remplace par une condition fausse que l'on traitera plus tard
                             // Or, VALUNIQUExNB == 0
                             niveau_condition = 0;      // On sort
@@ -558,11 +559,12 @@ void FenPrincipale::tester( bool executer )
         affListeVar->addItem(QString("LISTE " + LsVar.at(i) + " =  [" + valListe + "]"));
     }
     //Pratique pour les tests
-    //        for (int i = 0 ; i < Lignes.size() ; i++)
-    //        {
-    //            affListeVar->addItem(QString(Lignes.at(i) ));
-    //        }
-
+   /*
+        for (int i = 0 ; i < Lignes.size() ; i++)
+            {
+                qDebug() << "Texte traité : " << QString(Lignes.at(i)) ;
+            }
+//*/
 }
 
 //Renvoie une chaine du type "une chaine" sans les guillemets
@@ -586,7 +588,7 @@ QString FenPrincipale::retirerGuillemets(QString ch)
 QString FenPrincipale::execOp(QString Op)
 {
 
-    qDebug() << "\tAppel d'execOp()";
+    qDebug() << "\tAppel d'execOp() : "  << Op;
 
     int i = 0;
     int pos = 0;
@@ -780,6 +782,7 @@ QVariant FenPrincipale::recupValListe(QString ch)
 
 bool FenPrincipale::defVarNb(QString ligne)
 {
+
     QString nvVal;
 
     if ( rxNbVar.exactMatch(ligne) != -1) //S'il y a qqch
@@ -790,13 +793,12 @@ bool FenPrincipale::defVarNb(QString ligne)
         }
         else if(NbVar.contains(rxNbVar.capturedTexts().at(1))) // Si la variable existe déjà...
         {
+             qDebug() << "Modification d'une variable numérique : " << ligne;
 
             if (rxNbVar.capturedTexts()[2] == "") //Si on a écrit '<var> est un nombre'
             {
-
                 NbVal.replace(NbVar.indexOf(QString(rxNbVar.capturedTexts().at(1))),QVariant(0)) ; //Valeur = 0
                 ActFinales << "[M](L)" + NbVar.value(NbVar.indexOf(QString(rxNbVar.capturedTexts().at(1)))) + "="+ NbVal.value(NbVar.indexOf(QString(rxNbVar.capturedTexts().at(1)))).toString();
-
             }
             else //Si on a écrit '<var> = <nombre>'
             {
@@ -814,7 +816,7 @@ bool FenPrincipale::defVarNb(QString ligne)
         }
         else // Si on créé la variable
         {
-
+             qDebug() << "Création d'une variable numérique : " << ligne;
             NbVar << rxNbVar.capturedTexts().at(1); // On ajoute le nom de la variable au tableau correspondant
             if (rxNbVar.capturedTexts().at(2) == "") //Si on a écrit '<var> est un nombre'
             {
@@ -828,7 +830,7 @@ bool FenPrincipale::defVarNb(QString ligne)
                 ActFinales << "[I](N)"+NbVar.last() + "="+ NbVal.last().toString();
             }
         }
-
+        qDebug() << "\tVar : " << NbVar.last() << " Val : " << NbVal.last();
         return true;
     }
     else
@@ -840,7 +842,7 @@ bool FenPrincipale::defVarNb(QString ligne)
 bool FenPrincipale::defVarTx(QString ligne)
 {
     QString nvVal;
-    QRegExp concatenation = QRegExp("(?:(\"[^\"]*\")|([a-zA-Z]{1}[a-zA-Z0-9_]*))(?: ?\\+ ?(?:(\"[^\"]*\")|([a-zA-Z]{1}[a-zA-Z0-9_]*)))+");
+    QRegExp concatenation = QRegExp("(?:(\"[^\"]*\")|([a-zA-Z]{1}[a-zA-Z0-9_]*)) *\\+ *(?:([a-zA-Z]{1}[a-zA-Z0-9_]*)|(\"[^\"]*\"))+");
 
 
     if( ! LsVar.contains(rxTxVar.capturedTexts()[1]) &&  ! NbVar.contains(rxTxVar.capturedTexts()[1]))
@@ -857,8 +859,8 @@ bool FenPrincipale::defVarTx(QString ligne)
                     ch_prec = ch;
                     QString ch1 = concatenation.capturedTexts()[1];
                     QString var1 = concatenation.capturedTexts()[2];
-                    QString ch2 = concatenation.capturedTexts()[3];
-                    QString var2 = concatenation.capturedTexts()[4];
+                    QString ch2 = concatenation.capturedTexts()[4];
+                    QString var2 = concatenation.capturedTexts()[3];
                     qDebug() << "Concaténation d'une chaine"
                              <<"\n\tLigne : " << ch_tot
                             <<"\n\tChaine de travail : " << ch
@@ -882,10 +884,6 @@ bool FenPrincipale::defVarTx(QString ligne)
                         else if (NbVar.contains(var1))
                             nvVal = NbVal[NbVar.indexOf(var1)].toString();
                     }
-                    else
-                    {
-                        return false;
-                    }
 
                     if(! ch2.isEmpty())
                     {
@@ -899,10 +897,6 @@ bool FenPrincipale::defVarTx(QString ligne)
                             nvVal += TxVal[TxVar.indexOf(var2)] ;
                         else if (NbVar.contains(var2))
                             nvVal += NbVal[NbVar.indexOf(var2)].toString() ;
-                    }
-                    else
-                    {
-                        return false;
                     }
 
                     ch_tot.replace(concatenation.capturedTexts()[0],QString("\"" +nvVal+"\""));
@@ -1427,7 +1421,7 @@ bool FenPrincipale::affVal(QString ligne)
         else if(TxVar.contains(var))
         {
             val = TxVal[TxVar.indexOf(var)];
-            info(this,"Affichage d'une valeur",QString ("La variable texte (chaîne)" + var + " a pour valeur " + val));
+            info(this,"Affichage d'une valeur",QString ("La variable texte (chaîne) " + var + " a pour valeur " + val));
         }
         else if(LsVar.contains(var))
         {
