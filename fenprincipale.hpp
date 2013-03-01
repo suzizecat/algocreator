@@ -78,6 +78,9 @@ protected:
 
     bool dansBoucle2;
 
+    int derLigne =0;
+    int derIndex =0;
+    bool verrPositionCurseur;
     QString retirerGuillemets(QString);
     QString execOp(QString);
 
@@ -109,6 +112,7 @@ protected:
     void nouveau();
     void affSaiAssistee(bool=true);
     void assisteSaisie(int);
+    void positionCurseur(int,int);
 };
 
 #endif // FENRINCIPALE_H

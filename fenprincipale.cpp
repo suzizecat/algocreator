@@ -136,6 +136,7 @@ FenPrincipale::FenPrincipale(QMainWindow *parent) : QMainWindow(parent)
     connect(actionNouveau,SIGNAL(triggered()),this,SLOT(nouveau()));
     connect(actionImprimer,SIGNAL(triggered()),this,SLOT(imprimer()));
     connect(actionSaisieAssistee,SIGNAL(toggled(bool)),this,SLOT(affSaiAssistee(bool)));
+    connect(zoneTexte,SIGNAL(cursorPositionChanged(int,int)),this,SLOT(positionCurseur(int,int)));
 
     connect(btnsSaiAssist,SIGNAL(buttonClicked(int)), this, SLOT(assisteSaisie(int)));
     nouveau();
@@ -559,7 +560,7 @@ void FenPrincipale::tester( bool executer )
         affListeVar->addItem(QString("LISTE " + LsVar.at(i) + " =  [" + valListe + "]"));
     }
     //Pratique pour les tests
-   /*
+    /*
         for (int i = 0 ; i < Lignes.size() ; i++)
             {
                 qDebug() << "Texte traité : " << QString(Lignes.at(i)) ;
@@ -793,7 +794,7 @@ bool FenPrincipale::defVarNb(QString ligne)
         }
         else if(NbVar.contains(rxNbVar.capturedTexts().at(1))) // Si la variable existe déjà...
         {
-             qDebug() << "Modification d'une variable numérique : " << ligne;
+            qDebug() << "Modification d'une variable numérique : " << ligne;
 
             if (rxNbVar.capturedTexts()[2] == "") //Si on a écrit '<var> est un nombre'
             {
@@ -816,7 +817,7 @@ bool FenPrincipale::defVarNb(QString ligne)
         }
         else // Si on créé la variable
         {
-             qDebug() << "Création d'une variable numérique : " << ligne;
+            qDebug() << "Création d'une variable numérique : " << ligne;
             NbVar << rxNbVar.capturedTexts().at(1); // On ajoute le nom de la variable au tableau correspondant
             if (rxNbVar.capturedTexts().at(2) == "") //Si on a écrit '<var> est un nombre'
             {
@@ -1815,7 +1816,9 @@ void FenPrincipale::ouvrir()
                 nom_fichier = fi.fileName();
                 chemin_fichier = cheminAlgo;
                 changeTitreFen(this,nom_fichier);
-                zoneTexte->setText(fichier.readAll());
+                QString txt = fichier.readAll();
+                txt = txt.toUtf8();
+                zoneTexte->setText(txt);
                 fichier.close();
 
             }
@@ -1894,13 +1897,11 @@ void FenPrincipale::affSaiAssistee(bool aff)
 
 void FenPrincipale::assisteSaisie(int fonction)
 {
+    verrPositionCurseur = true;
     qDebug() << "Saisie assistée ..."
              << "\n\tBouton ( fonction ) : " << fonction
              << "\n\tTest pour mise à jour liste var";
     tester(false);
-    int ligneCurseur;
-    int indexCurseur;
-    zoneTexte->getCursorPosition(&ligneCurseur,&indexCurseur);
 
     QString aAjouter;
     QList<QStringList> ensembleVariables;
@@ -1933,8 +1934,14 @@ void FenPrincipale::assisteSaisie(int fonction)
 
     }
     if( !aAjouter.isEmpty())
-        zoneTexte->insertAt(QString(aAjouter+"\n"),ligneCurseur+2,0);
-
+    {
+        if(derIndex == 0)
+            zoneTexte->insertAt(QString(aAjouter+"\n"),derLigne,0);
+        else
+            zoneTexte->insertAt(QString(aAjouter+"\n"),derLigne+1,0);
+        zoneTexte->setCursorPosition(derLigne+1,QString(aAjouter).length());
+    }
+    verrPositionCurseur = false;
 }
 
 void FenPrincipale::imprimer()
@@ -1947,4 +1954,15 @@ void FenPrincipale::imprimer()
         printer->printRange(zoneTexte); // impression du contenu du QsciScintilla
 
     }
+}
+
+void FenPrincipale::positionCurseur(int ligne, int index)
+{
+    if(verrPositionCurseur == false)
+    {
+        derLigne = ligne;
+        derIndex = index;
+
+        qDebug() << ligne << index << derLigne << derIndex;
+    }//statut->showMessage("Ligne : " +  QVariant(ligne).toString() + " Char : " + QVariant(index).toString());
 }
