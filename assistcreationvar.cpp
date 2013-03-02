@@ -31,21 +31,20 @@ void assistCreationVar::valide()
     switch(typeVar->currentIndex())
     {
     case 0:
-        if(nomVariable->text() != "")
-            *valRet =(QString(nomVariable->text()+" est un nombre"));
+        *valRet =QString(nomVariable->text()+" est un nombre");
         break;
     case 1:
         if(nomVariable->text() != "")
-            *valRet =(QString(nomVariable->text()+" est une chaine"));
+            *valRet =QString(nomVariable->text()+" est une chaine");
         break;
     case 2:
         if(nomVariable->text() != "")
-            *valRet =(QString(nomVariable->text()+" est une liste"));
+            *valRet =QString(nomVariable->text()+" est une liste");
         break;
     }
 
-   if(nomVariable->text() == "")
-       annule();
+    if(nomVariable->text() == "")
+        annule();
 
     close();
 }

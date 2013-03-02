@@ -59,3 +59,13 @@ void changeTitreFen(QWidget *parent, QString titre,bool titreComplet)
     else
         parent->setWindowTitle(QString("AlgoCreator v"+QCoreApplication::applicationVersion()+" "+titre));
 }
+
+QString sansEncadrementEsp(QString str)
+{
+    QRegExp rx = QRegExp("(?: \t)*([^ \t].+[^ \t])(?: \t)*");
+    if(rx.indexIn(str) != -1)
+        return rx.capturedTexts()[1];
+    else
+        return str;
+
+}

@@ -12,6 +12,7 @@ FenPrincipale::FenPrincipale(QMainWindow *parent) : QMainWindow(parent)
     if( param.value("premOuverture",true) == true || param.value("version","0") != QCoreApplication::applicationVersion() )
     {
         qDebug() << "Initialisation des parametres ...";
+        param.clear();
         param.beginGroup("rxLang");
         param.setValue("rxLigne","([^\n]*)\n");
         param.setValue("rxVarNb","([a-zA-Z]{1}[a-zA-Z0-9_]*)(?: ?= ?([()0-9+\\-/.,*a-zA-Z _]+|([a-zA-Z]{1}[a-zA-Z0-9_]*) ?\\[([()0-9+\\-/.,*a-zA-Z _]+)\\])| est[ _]un[ _]nombre) *#!\\?F_LN");
@@ -23,11 +24,17 @@ FenPrincipale::FenPrincipale(QMainWindow *parent) : QMainWindow(parent)
         param.setValue("rxRecSai","SAISIR ([a-zA-Z]{1}[a-zA-Z0-9_]*) ?(?:\\[([()0-9+\\-/.*a-zA-Z_]+)\\])? *#!\\?F_LN");
         param.setValue("rxAffVar","AFFICHER ([a-zA-Z]{1}[a-zA-Z0-9_]*) ?(?:\\[([()0-9+\\-/.*a-zA-Z_]+)\\])? *#!\\?F_LN");
         param.setValue("rxValAlea","HASARD( [()0-9+\\-/.*a-zA-Z_]+)?(?: ?,([()0-9+\\-/.*a-zA-Z_]+))?");
-        param.setValue("rxValEnt","PART_ENT( [()0-9+\\-/.*a-zA-Z_]+)?");
+        param.setValue("rxValEnt","PART_ENT ?([()0-9+\\-/.*a-zA-Z_]+)");
         param.setValue("rxStrCondition","SI ([a-zA-Z]{1}[a-zA-Z0-9_]*|([a-zA-Z]{1}[a-zA-Z0-9_]*) ?\\[([()0-9+\\-/.*a-zA-Z_]+)\\]) ?(\\<|==|\\<=|\\>=|\\>|!=) ?([()0-9+\\-/.*a-zA-Z_]+|[a-zA-Z]{1}[a-zA-Z0-9_]*|([a-zA-Z]{1}[a-zA-Z0-9_]*) ?\\[([()0-9+\\-/.*a-zA-Z_]+)\\]|\"[^\"]*\") ALORS *#!\\?F_LN");
         param.setValue("rxStrBoucle","TANT ?QUE ([a-zA-Z]{1}[a-zA-Z0-9_]*|([a-zA-Z]{1}[a-zA-Z0-9_]*) ?\\[([()0-9+\\-/.*a-zA-Z_]+)\\]) ?(\\<|==|\\<=|\\>=|\\>|!=) ?([()0-9+\\-/.*a-zA-Z_]+|[a-zA-Z]{1}[a-zA-Z0-9_]*([a-zA-Z]{1}[a-zA-Z0-9_]*) ?\\[([()0-9+\\-/.*a-zA-Z_]+)\\]|\"[^\"]*\") FAIRE *#!\\?F_LN");
         param.setValue("rxStrBoucle2", "JUSQU[' ]?A CE QUE ([a-zA-Z]{1}[a-zA-Z0-9_]*|([a-zA-Z]{1}[a-zA-Z0-9_]*) ?\\[([()0-9+\\-/.*a-zA-Z_]+)\\]) ?(\\<|==|\\<=|\\>=|\\>|!=) ?([()0-9+\\-/.*a-zA-Z_]+|[a-zA-Z]{1}[a-zA-Z0-9_]*([a-zA-Z]{1}[a-zA-Z0-9_]*) ?\\[([()0-9+\\-/.*a-zA-Z_]+)\\]|\"[^\"]*\") *#!\\?F_LN");
 
+        param.endGroup();
+
+        param.beginGroup("editeur");
+        param.setValue("police","Monospace");
+        param.setValue("taillePolice",10);
+        param.setValue("masqListeVar",true);
         param.endGroup();
 
         if( param.value("premOuverture",true).toBool())
@@ -44,6 +51,8 @@ FenPrincipale::FenPrincipale(QMainWindow *parent) : QMainWindow(parent)
     }
 
     qDebug() << "Definition des variables...";
+    derIndex = 0;
+    derLigne = 0;
 
     btnsSaiAssist = new QButtonGroup();
     btnsSaiAssist->addButton(creerVariable,assistCreationVar::CreationVariable);
@@ -65,62 +74,9 @@ FenPrincipale::FenPrincipale(QMainWindow *parent) : QMainWindow(parent)
     nom_fichier = "Sans Titre";
     chemin_fichier = "";
 
-    param.beginGroup("rxLang");
 
-    qDebug() << "Initialisation des regexs ...";
+    updateOptions();
 
-    rxLigne = QRegExp(param.value("rxLigne").toString());
-    //Definition de la déclaration d'un nombre
-    rxNbVar =  QRegExp(param.value("rxVarNb").toString());
-    //Definition de la déclaration d'une chaîne
-    rxTxVar = QRegExp(param.value("rxVarTx").toString());
-    //Définition de la déclaration d'une liste
-    rxLsVar = QRegExp(param.value("rxVarLs").toString());
-
-
-    rxModifListe = QRegExp(param.value("rxModLs").toString());
-    rxRecupValListe = QRegExp(param.value("rxRecValLs").toString());
-    rxRecupSaisie = QRegExp(param.value("rxRecSai").toString());
-    rxAfficheVar = QRegExp(param.value("rxAffVar").toString());
-    rxVarOpSurSoisMeme = QRegExp(param.value("rxModOpSMM").toString());
-    rxCondition = QRegExp(param.value("rxStrCondition").toString());
-    rxBoucle = QRegExp(param.value("rxStrBoucle").toString());
-    rxBoucle2 =  QRegExp(param.value("rxStrBoucle2").toString());
-
-    rxValAlea = QRegExp(param.value("rxValAlea").toString());
-    rxValEnt = QRegExp(param.value("rxValEnt").toString());
-    param.endGroup();
-
-    QsciLexerAlgo *lexer= new QsciLexerAlgo();
-
-    qDebug() << "Configuration de l'editeur...";
-    // C'est mieux avec une police de charactère...
-    lexer->setFont(QFont("Monospace",10));
-    zoneTexte->setLexer(lexer);
-
-    //Definition de l'API
-
-    QsciAPIs *api = new QsciAPIs(lexer);
-    api->load(":/textes/apiLang");
-    api->prepare();
-
-    //application et paramêtrage de l'API
-    zoneTexte->setAutoCompletionSource(QsciScintilla::AcsAPIs);
-    zoneTexte->setAutoCompletionThreshold(3); //Nombre de lettres pour commencer auto-completion
-    zoneTexte->setIndentationGuides(true);
-    zoneTexte->setIndentationsUseTabs(true); //Plus pratique
-    zoneTexte->setAutoIndent(true);
-    zoneTexte->setTabWidth(3); //Defaut 8
-
-    zoneTexte->setMarginWidth(0,"0000");//On se débrouille pour que la marge soit assez grande (ici jusqu'au nombre 999)
-    zoneTexte->setUtf8(true);
-
-    qDebug()<< "\tPolice : " << zoneTexte->font()
-            <<"\n\tNombre de lettres pour autocompletion : "<< zoneTexte->autoCompletionThreshold()
-           <<"\n\tGuide d'indentation : " << zoneTexte->indentationGuides()
-          <<"\n\tUtilisation des tabulation pour l'indentation : " << zoneTexte->indentationsUseTabs()
-         <<"\n\tAuto indentation : " << zoneTexte->autoIndent()
-        <<"\n\tLargeur des tabulations : "<< zoneTexte->tabWidth();
     qDebug()<< "Connection slots/signaux ...";
 
     affSaiAssistee(false);
@@ -145,7 +101,6 @@ FenPrincipale::FenPrincipale(QMainWindow *parent) : QMainWindow(parent)
 
 void FenPrincipale::tester( bool executer )
 {
-
     qDebug()<<"Test lance...\nInitialisation des variables...";
     //On efface les affichages et l'historique
     affListeVar->clear();
@@ -268,6 +223,7 @@ void FenPrincipale::tester( bool executer )
 
         if(executer)
         {
+            actionSaisieAssistee->setChecked(false);
             if(pos_origBoucle != -1 && pos_boucle != -1) //Si on est dans une boucle
             {
                 if(i>=pos_boucle) //Si on a atteint la fin de la boucle
@@ -639,8 +595,7 @@ QString FenPrincipale::execOp(QString Op)
     {
 
         QString val = rxValEnt.capturedTexts()[1];
-        QString nb = execOp(val).left(execOp(val).indexOf("\."));
-
+        QString nb = execOp(val).left(execOp(val).indexOf("."));
         qDebug()<< "\t\tPartie entiere de " << val << "(" << execOp(val) << ") : " << nb;
         chActu.replace(rxValEnt,QVariant(nb).toString());
     }
@@ -763,7 +718,7 @@ QString FenPrincipale::execOp(QString Op)
 
         }
     } while (parentheses.indexIn(chSuccessives[0]) != -1 );
-    return chSuccessives[0];
+    return sansEncadrementEsp(chSuccessives[0]);
 
 }
 
@@ -1779,24 +1734,7 @@ void FenPrincipale::affOptions()
     {
         fenoptions fen(this);
         fen.exec();
-        param.beginGroup("rxLang");
-        rxLigne = QRegExp(param.value("rxLigne").toString());
-        //Definition de la déclaratio  fichier.write();n d'un nombre
-        rxNbVar =  QRegExp(param.value("rxVarNb").toString());
-        //Definition de la déclaration d'une chaîne
-        rxTxVar = QRegExp(param.value("rxVarTx").toString());
-        //Définition de la déclaration d'une liste
-        rxLsVar = QRegExp(param.value("rxVarLs").toString());
-
-
-        rxModifListe = QRegExp(param.value("rxModLs").toString());
-        rxRecupValListe = QRegExp(param.value("rxRecValLs").toString());
-        rxRecupSaisie = QRegExp(param.value("rxRecSai").toString());
-        rxVarOpSurSoisMeme = QRegExp(param.value("rxModOpSMM").toString());
-        rxCondition = QRegExp(param.value("rxStrCondition").toString());
-        rxBoucle = QRegExp(param.value("rxStrBoucle").toString());
-
-        param.endGroup();
+        updateOptions();
     }
 }
 
@@ -1892,7 +1830,12 @@ void FenPrincipale::nouveau()
 
 void FenPrincipale::affSaiAssistee(bool aff)
 {
+    QSettings param;
     panneauSaisieAssist->setVisible(aff);
+    if(param.value("editeur/masqListeVar").toBool())
+        affListeVar->setVisible(! aff);
+    else
+        affListeVar->setVisible(true);
 }
 
 void FenPrincipale::assisteSaisie(int fonction)
@@ -1964,5 +1907,68 @@ void FenPrincipale::positionCurseur(int ligne, int index)
         derIndex = index;
 
         qDebug() << ligne << index << derLigne << derIndex;
-    }//statut->showMessage("Ligne : " +  QVariant(ligne).toString() + " Char : " + QVariant(index).toString());
+    }
+}
+
+void FenPrincipale::updateOptions()
+{
+    QSettings param;
+    param.beginGroup("rxLang");
+
+    qDebug() << "Initialisation des regexs ...";
+
+    rxLigne = QRegExp(param.value("rxLigne").toString());
+    //Definition de la déclaration d'un nombre
+    rxNbVar =  QRegExp(param.value("rxVarNb").toString());
+    //Definition de la déclaration d'une chaîne
+    rxTxVar = QRegExp(param.value("rxVarTx").toString());
+    //Définition de la déclaration d'une liste
+    rxLsVar = QRegExp(param.value("rxVarLs").toString());
+
+
+    rxModifListe = QRegExp(param.value("rxModLs").toString());
+    rxRecupValListe = QRegExp(param.value("rxRecValLs").toString());
+    rxRecupSaisie = QRegExp(param.value("rxRecSai").toString());
+    rxAfficheVar = QRegExp(param.value("rxAffVar").toString());
+    rxVarOpSurSoisMeme = QRegExp(param.value("rxModOpSMM").toString());
+    rxCondition = QRegExp(param.value("rxStrCondition").toString());
+    rxBoucle = QRegExp(param.value("rxStrBoucle").toString());
+    rxBoucle2 =  QRegExp(param.value("rxStrBoucle2").toString());
+
+    rxValAlea = QRegExp(param.value("rxValAlea").toString());
+    rxValEnt = QRegExp(param.value("rxValEnt").toString());
+    param.endGroup();
+
+    param.beginGroup("editeur");
+    QsciLexerAlgo *lexer= new QsciLexerAlgo();
+
+    qDebug() << "Configuration de l'editeur...";
+    // C'est mieux avec une police de charactère...
+   lexer->setFont(QFont(param.value("police","Monospace").toString(),param.value("taillePolice",10).toInt()));
+    zoneTexte->setFont(QFont(param.value("police","Monospace").toString(),param.value("taillePolice",10).toInt()));
+    zoneTexte->setLexer(lexer);
+
+    //Definition de l'API
+
+    QsciAPIs *api = new QsciAPIs(lexer);
+    api->load(":/textes/apiLang");
+    api->prepare();
+
+    //application et paramêtrage de l'API
+    zoneTexte->setAutoCompletionSource(QsciScintilla::AcsAPIs);
+    zoneTexte->setAutoCompletionThreshold(3); //Nombre de lettres pour commencer auto-completion
+    zoneTexte->setIndentationGuides(true);
+    zoneTexte->setIndentationsUseTabs(true); //Plus pratique
+    zoneTexte->setAutoIndent(true);
+    zoneTexte->setTabWidth(3); //Defaut 8
+
+    zoneTexte->setMarginWidth(0,"0000");//On se débrouille pour que la marge soit assez grande (ici jusqu'au nombre 999)
+    zoneTexte->setUtf8(true);
+    param.endGroup();
+    qDebug()<< "\tPolice : " << lexer->font(0)
+            <<"\n\tNombre de lettres pour autocompletion : "<< zoneTexte->autoCompletionThreshold()
+           <<"\n\tGuide d'indentation : " << zoneTexte->indentationGuides()
+          <<"\n\tUtilisation des tabulation pour l'indentation : " << zoneTexte->indentationsUseTabs()
+         <<"\n\tAuto indentation : " << zoneTexte->autoIndent()
+        <<"\n\tLargeur des tabulations : "<< zoneTexte->tabWidth();
 }

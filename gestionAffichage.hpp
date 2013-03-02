@@ -22,4 +22,5 @@ bool ouiNon(QWidget *parent,QString titre ,QString contenu);
 void changeTitreFen(QWidget *parent, QString titre,bool titreComplet=false);
 
 QString intVersStr(int nombre);
+QString sansEncadrementEsp(QString);
 #endif // GESTIONAFFICHAGE_HPP

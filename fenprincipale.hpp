@@ -30,6 +30,7 @@ class FenPrincipale : public QMainWindow, private Ui::FenPrincipale
 
 public:
     FenPrincipale(QMainWindow *parent = 0);
+    void updateOptions();
 
 
 protected:
@@ -78,9 +79,10 @@ protected:
 
     bool dansBoucle2;
 
-    int derLigne =0;
-    int derIndex =0;
+    int derLigne;
+    int derIndex;
     bool verrPositionCurseur;
+
     QString retirerGuillemets(QString);
     QString execOp(QString);
 
@@ -101,7 +103,6 @@ protected:
 
     int execCondition(QString);
     int execBoucle(QString);
-
 
  public slots :
     void tester(bool executer = true);

@@ -31,21 +31,25 @@ void fenoptions::initVal()
 bool fenoptions::sauveParam()
 {
     param.beginGroup("rxLang");
+    int i;
+    QMessageBox::information(this,"Info","Sauvegarde des parametres...");
+    vidageVar->setText(modelRegexTable->index(i,0).data().toString()+modelRegexTable->index(i,1).data().toString());
+    while(modelRegexTable->index(i,0).data().toString() != "" )
+    {
+        param.setValue(modelRegexTable->index(i,0).data().toString(),modelRegexTable->index(i,1).data().toString());
 
-            int i;
-            QMessageBox::information(this,"Info","Sauvegarde des parametres...");
-           vidageVar->setText(modelRegexTable->index(i,0).data().toString()+modelRegexTable->index(i,1).data().toString());
-        while(modelRegexTable->index(i,0).data().toString() != "" )
-        {
-           param.setValue(modelRegexTable->index(i,0).data().toString(),modelRegexTable->index(i,1).data().toString());
+        i++;
+    }
 
-            i++;
-        }
+    param.endGroup();
+    param.beginGroup("editeur");
+    param.setValue("police", policeEditeur->currentFont().family());
 
-        affVar();
+    param.setValue("taillePolice",taillePoliceEditeur->value());
+    param.setValue("masqListeVar",masqSaiAssist->isChecked());
     param.endGroup();
 
-
+    affVar();
 
 }
 
@@ -66,6 +70,12 @@ void fenoptions::affVar()
     RegExpView->setModel(modelRegexTable);
     param.endGroup();
 
+    param.beginGroup("editeur");
+    policeEditeur->setCurrentFont(QFont(param.value("police").toString()));
+    taillePoliceEditeur->setValue(param.value("taillePolice").toInt());
+    masqSaiAssist->setChecked(param.value("masqListeVar").toBool());
+    param.endGroup();
+
 }
 
 void fenoptions::sauveEtQuitte()
@@ -73,3 +83,4 @@ void fenoptions::sauveEtQuitte()
     sauveParam();
     close();
 }
+
