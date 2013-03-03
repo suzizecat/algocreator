@@ -27,6 +27,7 @@ FenPrincipale::FenPrincipale(QMainWindow *parent) : QMainWindow(parent)
         param.setValue("rxValEnt","PART_ENT ?([()0-9+\\-/.*a-zA-Z_]+)");
         param.setValue("rxStrCondition","SI ([a-zA-Z]{1}[a-zA-Z0-9_]*|([a-zA-Z]{1}[a-zA-Z0-9_]*) ?\\[([()0-9+\\-/.*a-zA-Z_]+)\\]) ?(\\<|==|\\<=|\\>=|\\>|!=) ?([()0-9+\\-/.*a-zA-Z_]+|[a-zA-Z]{1}[a-zA-Z0-9_]*|([a-zA-Z]{1}[a-zA-Z0-9_]*) ?\\[([()0-9+\\-/.*a-zA-Z_]+)\\]|\"[^\"]*\") ALORS *#!\\?F_LN");
         param.setValue("rxStrBoucle","TANT ?QUE ([a-zA-Z]{1}[a-zA-Z0-9_]*|([a-zA-Z]{1}[a-zA-Z0-9_]*) ?\\[([()0-9+\\-/.*a-zA-Z_]+)\\]) ?(\\<|==|\\<=|\\>=|\\>|!=) ?([()0-9+\\-/.*a-zA-Z_]+|[a-zA-Z]{1}[a-zA-Z0-9_]*([a-zA-Z]{1}[a-zA-Z0-9_]*) ?\\[([()0-9+\\-/.*a-zA-Z_]+)\\]|\"[^\"]*\") FAIRE *#!\\?F_LN");
+        param.setValue("rxDebutBoucle2","REPETER *#!\\?F_LN");
         param.setValue("rxStrBoucle2", "JUSQU[' ]?A CE QUE ([a-zA-Z]{1}[a-zA-Z0-9_]*|([a-zA-Z]{1}[a-zA-Z0-9_]*) ?\\[([()0-9+\\-/.*a-zA-Z_]+)\\]) ?(\\<|==|\\<=|\\>=|\\>|!=) ?([()0-9+\\-/.*a-zA-Z_]+|[a-zA-Z]{1}[a-zA-Z0-9_]*([a-zA-Z]{1}[a-zA-Z0-9_]*) ?\\[([()0-9+\\-/.*a-zA-Z_]+)\\]|\"[^\"]*\") *#!\\?F_LN");
 
         param.endGroup();
@@ -117,18 +118,17 @@ void FenPrincipale::tester( bool executer )
     //####################
     //Variables
 
-    int pos=0;              // Position du curseur pour les recherches (remettre à 0 après chaque séries de recherches)
-    int niveau_condition=0; // Le "niveau de condition" est le nombre de conditions dans lesquelles on est rentré (cf Conditions et Boucles)
+    int pos=0;    // Position du curseur pour les recherches (remettre à 0 après chaque séries de recherches)
+    int niveau=0; // Le "niveau de condition" est le nombre de conditions dans lesquelles on est rentré (cf Conditions et Boucles)
+    int posSinon = -1;
 
-    int pos_boucle = -1;    // Position de la fin d'une boucle
-    int pos_origBoucle = -1;// Position du début d'une boucle
-    dansBoucle2= false;
-    //! ####################################
-    //!    QList<int> lsPosFinBoucle;
-    //!    QList<int> lsPosDebutBoucle;
-    //!    QList<bool> etapeDansBoucle2;
 
-    //!  ###################################
+    QList<int> lsPosDebutBoucle;
+    QList<bool> dansBoucle2;
+    QList<bool> dansCondition;
+    int numBoucle = 0;
+
+
 
     qDebug()<<"Recuperation de l'algo...";
     QString contenu = zoneTexte->text(); //On récupère l'algorithme
@@ -220,20 +220,10 @@ void FenPrincipale::tester( bool executer )
     //Lancement du test réel
     for (int i=0; i<Lignes.length();i++)
     {
-
         if(executer)
         {
-            actionSaisieAssistee->setChecked(false);
-            if(pos_origBoucle != -1 && pos_boucle != -1) //Si on est dans une boucle
-            {
-                if(i>=pos_boucle) //Si on a atteint la fin de la boucle
-                {
-                    //On se replace au début de la boucle, à TANT QUE ... FAIRE
-                    //Ainsi, si on doit sauter la boucle, on la saute et on remet les variables à -1
-                    i=pos_origBoucle;
-                }
-            }
-
+            if(QSettings().value("editeur/masqListeVar",true).toBool())
+                actionSaisieAssistee->setChecked(false);
 
             //Pour chaque ligne, on regarde si elle correspond à une action, si elle correspond, on passe à la ligne suivante.
 
@@ -241,212 +231,188 @@ void FenPrincipale::tester( bool executer )
             //C'est pour ça qu'il n'y a aucune action pour chaque condition.
             //L'exeption étant les structures conditionnelles et répetitives qui influent sur "i"
 
-            //Si on rencontre un condition fausse
-            //On va sauter toutes les actions jusqu'à un "sinon" ( condition vraie) ou la fin de la condition.
-            if(execCondition(Lignes[i]) == 0)
+            if(rxDebutBoucle2.indexIn(Lignes[i]) != -1) //Si on a "REPETER"
             {
-                pos=i+1; // On prend la position +1 ( on saute la ligne définissant la condition
-                niveau_condition=1; //Le niveau correspond au nombre de condition dans lesquelles nous sommes rentrés
-                //Celui-ci est à 1 Pour la condition primaire
-                //Et atteint 0 quand on sort de cette condition.
 
-                while (niveau_condition > 0 && pos < Lignes.count())
-                {
-                    if(rxCondition.indexIn(Lignes[pos]) != -1)
-                    {
-                        niveau_condition ++; //Si on entre dans une autre condition, on augment le niveau
-                    }
-                    else if (QRegExp("FIN").indexIn(Lignes[pos]) != -1)
-                    {
-                        niveau_condition --;    //Si on sort d'une condition, on baisse le niveau
-                        // Si on était dans la condition principale, on va en sortir
-                    }
-                    else if (QRegExp("SINON").indexIn(Lignes[pos]) != -1)
-                    {
-                        if (niveau_condition == 1)
-                        {
-                            niveau_condition --;    //Si on était dans la principale, on veux executer la suite donc on sort
-
-                        }
-                    }
-                    else if (rxBoucle.indexIn(Lignes[pos]) != -1)
-                    {
-                        niveau_condition ++; //Si on rencontre une boucle, on monte le niveau
-                    }
-                    else if (pos == Lignes.length()-1)
-                    {
-                        avertissement(this,"Attention, le mot-clé \"FIN\" n'a pas été rencontré en fin de condition fausse.\nLe fonctionnement de votre algorithme peut être compromis.\n\n***Nombre de \"FIN\" manquants : "+ intVersStr(niveau_condition) + " ***");
-                    }
-
-                    pos++; // On passe à la ligne suivante
-                }
-                i = pos-1; //Comme l'incrémentation se fait à la fin, il faut soustraire 1 pour avoir la bonne ligne
+                lsPosDebutBoucle << i;
+                dansBoucle2 << true;
+                dansCondition << false;
+                numBoucle ++;
+                qDebug() << "Entrée dans une boucle REPETER "
+                         << "\n\tlsPosDebutBoucle : " << lsPosDebutBoucle.last() << " (" << i << ")"
+                         <<"\n\tdansBoucle2 : " << dansBoucle2.last() << " (true)"
+                        <<"\n\tdansCondition : " << dansCondition.last() << " (false)"
+                       << "\n\tnumBoucle : " << numBoucle;
             }
-            //Si on rencontre une condition vraie
-            //On va supprimer ou rendre inactif tout le code qui ne sera pas executé
-            else if(execCondition(Lignes[i]) == 1)
+            else if(rxBoucle.indexIn(Lignes[i]) != -1) //Si on a une condition de boucle 1
             {
-
-                Lignes.removeAt(i); // On retire la ligne définissant la condition
-                // Note : Lignes[i] devient Lignes[i+1]
-
-                pos=i;
-                niveau_condition = 1;
-
-                while (niveau_condition > 0 && pos < Lignes.count())
+                if(execBoucle(Lignes[i]) == 1)//Si on l'execute
                 {
-
-                    if(rxCondition.indexIn(Lignes[pos]) != -1) //Si on rencontre une condition, on la conserve
-                    {                                          //elle sera traitée au prochain passage ...
-                        niveau_condition ++;
-                    }
-                    else if (QRegExp("FIN").indexIn(Lignes[pos]) != -1)
-                    {
-                        if(niveau_condition == 1)
-                        {
-                            Lignes.removeAt(pos);
-                            //Si on est en sortie de condition, on retire le "FIN" ( plus propre ...)
-                        }
-                        niveau_condition --;
-                    }
-                    else if (QRegExp("SINON").indexIn(Lignes[pos]) != -1)
-                    {
-                        if (niveau_condition == 1)      //Si on rencontre un "sinon" et qu'on est dans la principale
-                            //( condition fausse )
-                        {
-
-                            Lignes[pos]="SI VALUNIQUExNB == 1 ALORS "; // On le remplace par une condition fausse que l'on traitera plus tard
-                            // Or, VALUNIQUExNB == 0
-                            niveau_condition = 0;      // On sort
-                        }
-                    }
-                    if (pos == Lignes.length() && niveau_condition != 0)
-                    {
-                        avertissement(this,"Attention, le mot-clé \"FIN\" n'a pas été rencontré en fin de condition vraie.\nLe fonctionnement de votre algorithme peut être compromis.\n\n***Nombre de \"FIN\" manquants : "+ intVersStr(niveau_condition) + " ***");
-                        niveau_condition-- ;
-                    }
-
-                    pos ++;
+                    lsPosDebutBoucle << i;
+                    dansBoucle2 << false;
+                    dansCondition << false;
+                    numBoucle ++;
+                    qDebug() << "Entrée dans une boucle TANTQUE "
+                             << "\n\tlsPosDebutBoucle : " << lsPosDebutBoucle.last() << " (" << i << ")"
+                             <<"\n\tdansBoucle2 : " << dansBoucle2.last() << " (false)"
+                            <<"\n\tdansCondition : " << dansCondition.last() << " (false)"
+                           << "\n\tnumBoucle : " << numBoucle;
                 }
-
-
-                i--; //On prévoit la prochaine incrémentation ( au tour de boucle ) pour revenir au point de départ
-
-
-            }
-            //Si on entre pas dans la boucle, on traite de la meme façon qu'avec une condition fausse
-            else if(execBoucle(Lignes[i]) == 0)
-            {
-
-                //Le traitement des boucles "REPETER" est inversé par rapport aux autres, ici on reboucle
-                if(dansBoucle2)
+                else if(execBoucle(Lignes[i]) == 0)//Si on la saute
                 {
-                    if(pos_boucle == -1 )
+
+                    pos = i+1;
+                    niveau = 1;
+                    while(niveau > 0)
                     {
-                        pos_boucle = i+1;
-                    }
-                }
-                // On remet à -1 les variables pour ne pas refaire une précédente boucle
-                else
-                {
-                    pos_boucle = -1;
-                    pos_origBoucle = -1;
-                    pos=i+1;            // On prend la position +1 ( on saute la ligne définissant la boucle
-
-                    niveau_condition = 1; //Le niveau correspond au nombre de condition dans lesquelles nous sommes rentrés
-                    //Celui-ci est à 1 Pour la condition primaire
-                    //Et atteint 0 quand on sort de cette condition.
-
-                    while (niveau_condition > 0 && pos < Lignes.count())
-                    {
-
-                        if(rxCondition.indexIn(Lignes[pos]) != -1)
-                        {
-                            niveau_condition ++; //Si on entre dans une autre condition, on augment le niveau
-                        }
                         if(rxBoucle.indexIn(Lignes[pos]) != -1)
-                        {
-                            niveau_condition ++; //Si on entre dans une autre boucle, on augment le niveau
-                        }
-                        else if (QRegExp("FIN").indexIn(Lignes[pos]) != -1)
-                        {
-                            niveau_condition --;    //Si on sort d'une condition, on baisse le niveau
-                            // Si on était dans la condition principale, on en sort
-                        }
-                        else if (pos == Lignes.length())
-                        {
-                            avertissement(this,"Attention, le mot-clé \"FIN\" n'a pas été rencontré en fin de boucle.\nLe fonctionnement de votre algorithme peut être compromis.\n\n***Nombre de \"FIN\" manquants : "+ intVersStr(niveau_condition) + " ***");
-                        }
-                        pos++; // On passe à la ligne suivante
+                            niveau ++;
+                        if(rxDebutBoucle2.indexIn(Lignes[pos]) != -1)
+                            niveau ++;
+                        if(rxCondition.indexIn(Lignes[pos]) != -1)
+                            niveau ++;
+                        if(QRegExp("FIN").indexIn(Lignes[pos]) != -1)
+                            niveau --;
+                        if(rxBoucle2.indexIn(Lignes[pos]) != -1)
+                            niveau --;
+                        pos++;
                     }
-
-
-                    i = pos-1; //Comme l'incrémentation se fait à la fin, il faut soustraire 1 pour avoir la bonne ligne
+                    qDebug() << "Saut d'une boucle TANTQUE "
+                             << "\n\t De : " << i << " à " << pos
+                             << "\n\tnumBoucle : " << numBoucle;
+                    i=pos-1; //Pos++ est à la fin
+                    pos=0;
                 }
             }
-
-            else if(execBoucle(Lignes[i]) == 1) // Si on entre dans une boucle à executer,
+            else if(rxBoucle2.indexIn(Lignes[i]) != -1) // Si on a une condition de boucle 2
             {
-                //Le traitement des boucles "REPETER" est inversé par rapport aux autres, ici on sort
-                if(dansBoucle2)
+                if(execBoucle(Lignes[i]) == 0)
                 {
-                    dansBoucle2 = false;
-                    pos_boucle = -1;
-                    pos_origBoucle = -1;
-
+                    qDebug() << "Retour d'une boucle REPETER "
+                             << "\n\t De : " << i << " à " << lsPosDebutBoucle.last()
+                             << "\n\tlsPosDebutBoucle : " << lsPosDebutBoucle.last()
+                             <<"\n\tdansBoucle2 : " << dansBoucle2.last() << " (true)"
+                            <<"\n\tdansCondition : " << dansCondition.last() << " (false)"
+                           << "\n\tnumBoucle : " << numBoucle;
+                    i = lsPosDebutBoucle.last();
 
                 }
-                else if(pos_origBoucle == -1)
+                else if(execBoucle(Lignes[i]) == 1)
                 {
+                    qDebug() << "Sortie d'une boucle REPETER "
+                             << "\n\tnumBoucle : " << numBoucle;
+                    lsPosDebutBoucle.removeLast();
+                    dansBoucle2.removeLast();
+                    dansCondition.removeLast();
+                    numBoucle --;
+                    qDebug() << "Etat actuel "
+                             << "\n\tlsPosDebutBoucle : " << lsPosDebutBoucle.last()
+                             <<"\n\tdansBoucle2 : " << dansBoucle2.last()
+                            <<"\n\tdansCondition : " << dansCondition.last()
+                           << "\n\tnumBoucle : " << numBoucle;
 
+                }
 
-
-                    pos_origBoucle=i; // Si on était pas dans une boucle, on prend la valeur de départ
-                    // ATTENTION : Ne permet qu'une boucle à la fois
-                    niveau_condition = 1;
-                    //Le niveau correspond au nombre de condition dans lesquelles nous sommes rentrés
-                    //Celui-ci est à 1 Pour la condition primaire
-                    //Et atteint 0 qu}and on sort de cette condition.
-
-
-
-                    pos=i; // On prend la position
-
-
-                    // On va parcourir l'algorithme jusqu'à trouver la fin de la boucle
-
-                    while (niveau_condition > 0 && pos < Lignes.count())
+            }
+            else if(rxCondition.indexIn(Lignes[i]) != -1)
+            {
+                if(execCondition(Lignes[i]) == 0)
+                {
+                    pos = i+1;
+                    niveau = 1;
+                    while(niveau > 0)
                     {
+                        if(rxBoucle.indexIn(Lignes[pos]) != -1)
+                            niveau ++;
+                        if(rxDebutBoucle2.indexIn(Lignes[pos]) != -1)
+                            niveau ++;
                         if(rxCondition.indexIn(Lignes[pos]) != -1)
-                        {
-                            niveau_condition ++; //Si on entre dans une autre condition, on augment le niveau
-                        }
-                        if(pos != pos_origBoucle && rxBoucle.indexIn(Lignes[pos]) != -1)
-                        {
-                            niveau_condition ++; //Si on entre dans une autre boucle, on augmente le niveau
-                        }
-                        else if (QRegExp("FIN").indexIn(Lignes[pos]) != -1)
-                        {// On prend la position
-                            niveau_condition --;    //Si on sort d'une condition, on baisse le niveau
-                            // Si on était dans la condition principale, on en sort
-                        }
-                        else if (pos == Lignes.length()-1)
-                        {
-                            avertissement(this,"Attention, le mot-clé \"FIN\" n'a pas été rencontré en fin de boucle.\nLe fonctionnement de votre algorithme peut être compromis.\nLa boucle en cours a été stoppée.\n\n***Nombre de \"FIN\" manquants : "+ intVersStr(niveau_condition) + " ***");
-                            niveau_condition = 0;
-                            pos_boucle = -1;
-                            pos_origBoucle = -1;
-                        }
-
-                        pos++; // On passe à la ligne suivante
-
+                            niveau ++;
+                        if(QRegExp("FIN").indexIn(Lignes[pos]) != -1)
+                            niveau --;
+                        if(QRegExp("SINON").indexIn(Lignes[pos]) != -1 && niveau == 1)
+                            posSinon = pos;
+                        if(rxBoucle2.indexIn(Lignes[pos]) != -1)
+                            niveau --;
+                        pos++;
                     }
+                    if(posSinon != -1)
+                    {
+                        i=posSinon;
+                        Lignes.removeAt(pos-1);
+                    }
+                    else
+                        i = pos-1;
 
-
-                    pos--;
-                    pos_boucle=pos;
+                    posSinon = -1;
+                    pos = 0;
                 }
-                //Comme l'incrémentation se fait à la fin, il faut soustraire 1 pour avoir la bonne ligne
+                else if(execCondition(Lignes[i]) == 1)
+                {
+                    dansCondition << true;
+                    pos = i+1;
+                    niveau = 1;
+                    while(niveau > 0)
+                    {
+                        if(rxBoucle.indexIn(Lignes[pos]) != -1)
+                            niveau ++;
+                        if(rxDebutBoucle2.indexIn(Lignes[pos]) != -1)
+                            niveau ++;
+                        if(rxCondition.indexIn(Lignes[pos]) != -1)
+                            niveau ++;
+                        if(QRegExp("FIN").indexIn(Lignes[pos]) != -1)
+                            niveau --;
+                        if(QRegExp("SINON").indexIn(Lignes[pos]) != -1 && niveau == 1)
+                            posSinon = pos;
+                        if(rxBoucle2.indexIn(Lignes[pos]) != -1)
+                            niveau --;
+                        pos++;
+                    }
+                    if(posSinon != -1)
+                    {
+                        Lignes[posSinon] = "FIN";
+                        Lignes.insert(posSinon,"SI VALUNIQUExNB != 0 ALORS ");
+                    }
+                    posSinon = -1;
+                    pos = 0;
+                }
+
+
+            }
+            else if(QRegExp("FIN").indexIn(Lignes[i]) != -1)
+            {
+                if(dansCondition.last() == false)
+                {
+                    if(dansBoucle2.last() == false)
+                    {
+                        if(execBoucle(Lignes[lsPosDebutBoucle.last()]) == 1)
+                        {
+                            qDebug() << "Retour d'une boucle TANTQUE "
+                                     << "\n\t De : " << i << " à " << lsPosDebutBoucle.last()
+                                     << "\n\tlsPosDebutBoucle : " << lsPosDebutBoucle.last()
+                                     <<"\n\tdansBoucle2 : " << dansBoucle2.last() << " (false)"
+                                    <<"\n\tdansCondition : " << dansCondition.last() << " (false)"
+                                   << "\n\tnumBoucle : " << numBoucle;
+                            i = lsPosDebutBoucle.last(); //On a +1 à la fin ce qui permet d'éviter de repasser sur la ligne de déclaration de la boucle.
+
+
+                        }
+                        else if(execBoucle(Lignes[lsPosDebutBoucle.last()]) == 0)
+                        {
+                            qDebug() << "Sortie d'une boucle TANTQUE "
+                                     << "\n\tnumBoucle : " << numBoucle;
+                            lsPosDebutBoucle.removeLast();
+                            dansBoucle2.removeLast();
+                            dansCondition.removeLast();
+                            numBoucle --;
+                            qDebug() << "Etat actuel "
+                                     << "\n\tlsPosDebutBoucle : " << lsPosDebutBoucle.last()
+                                     <<"\n\tdansBoucle2 : " << dansBoucle2.last()
+                                    <<"\n\tdansCondition : " << dansCondition.last()
+                                   << "\n\tnumBoucle : " << numBoucle;
+                        }
+                    }
+                }
             }
 
             else if(defVarTx(Lignes[i])) {}//Variables de type chaîne
@@ -456,30 +422,6 @@ void FenPrincipale::tester( bool executer )
             else if(modListe(Lignes[i],true)){}  //Modifications d'une valeur d'une liste
             else if(modSaisie(Lignes[i])){}      //Saisie d'une valeur
             else if(affVal(Lignes[i])){} //Affichage d'une valeur
-            else if(QRegExp("REPETER").indexIn(Lignes[i]) != -1)
-            {
-                if( ! dansBoucle2)
-                {
-                    dansBoucle2 = true;
-                    pos_origBoucle = i;
-                }  qDebug() << rxNbVar.capturedTexts().at(1);
-
-            }
-            else if(QRegExp("DEBUG").indexIn(Lignes[i]) != -1)
-            {
-                QString msg;
-
-                msg += "--Variables--\n";
-                msg += "posOrig : "+ intVersStr(pos_origBoucle)+ "\n";
-                msg += "posFin : "+ intVersStr(pos_boucle)+ "\n";
-                msg += "dansBoucle2 : "+ intVersStr(dansBoucle2)+ "\n";
-                msg += "niveauCondition : " + intVersStr(niveau_condition) + "\n";
-
-
-                info(this,"Informations de Debug", msg);
-
-
-            }
 
         }
         else
@@ -1572,7 +1514,7 @@ int FenPrincipale::execBoucle(QString ligne)
     QString comp;
     QString listeComp;
     QString indiceListeComp;
-    if (rxBoucle.indexIn(ligne) != -1 && ! dansBoucle2  )
+    if (rxBoucle.indexIn(ligne) != -1 /*&& ! dansBoucle2*/  )
     {
 
         var = rxBoucle.capturedTexts()[1];
@@ -1584,7 +1526,7 @@ int FenPrincipale::execBoucle(QString ligne)
         indiceListeComp = rxBoucle.capturedTexts()[7];
 
     }
-    else if (rxBoucle2.indexIn(ligne) != -1 && dansBoucle2 )
+    else if (rxBoucle2.indexIn(ligne) != -1/* && dansBoucle2*/ )
     {
         var = rxBoucle2.capturedTexts()[1];
         listeVar = rxBoucle2.capturedTexts()[2];
@@ -1934,7 +1876,7 @@ void FenPrincipale::updateOptions()
     rxCondition = QRegExp(param.value("rxStrCondition").toString());
     rxBoucle = QRegExp(param.value("rxStrBoucle").toString());
     rxBoucle2 =  QRegExp(param.value("rxStrBoucle2").toString());
-
+    rxDebutBoucle2 = QRegExp(param.value("rxDebutBoucle2").toString());
     rxValAlea = QRegExp(param.value("rxValAlea").toString());
     rxValEnt = QRegExp(param.value("rxValEnt").toString());
     param.endGroup();
@@ -1944,7 +1886,7 @@ void FenPrincipale::updateOptions()
 
     qDebug() << "Configuration de l'editeur...";
     // C'est mieux avec une police de charactère...
-   lexer->setFont(QFont(param.value("police","Monospace").toString(),param.value("taillePolice",10).toInt()));
+    lexer->setFont(QFont(param.value("police","Monospace").toString(),param.value("taillePolice",10).toInt()));
     zoneTexte->setFont(QFont(param.value("police","Monospace").toString(),param.value("taillePolice",10).toInt()));
     zoneTexte->setLexer(lexer);
 

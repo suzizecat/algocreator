@@ -72,12 +72,13 @@ protected:
     QRegExp rxAfficheVar;       //Regex : Affichage de la valeur d'une variable
     QRegExp rxCondition;        //Regex : Definition d'une condition
     QRegExp rxBoucle;           //Regex : Définition d'une boucle type <while ...>
-    QRegExp rxBoucle2;          //Regex : Definition d'une boucle type <do ... while>
+    QRegExp rxBoucle2;          //Regex : Definition du <while> d'une boucle type <do ... while>
+    QRegExp rxDebutBoucle2;     //Regex : Definition du <do>
 
     QRegExp rxValAlea;          //Regex : Remplacement de cette regex par un nombre aleatoire
     QRegExp rxValEnt;
 
-    bool dansBoucle2;
+
 
     int derLigne;
     int derIndex;
