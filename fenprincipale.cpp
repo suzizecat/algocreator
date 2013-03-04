@@ -11,13 +11,14 @@ FenPrincipale::FenPrincipale(QMainWindow *parent) : QMainWindow(parent)
 
     if( param.value("premOuverture",true) == true || param.value("version","0") != QCoreApplication::applicationVersion() )
     {
+        //! S'il y a un bug avec une regex, essayer de placer [\t ]* devant...
         qDebug() << "Initialisation des parametres ...";
         param.clear();
         param.beginGroup("rxLang");
         param.setValue("rxLigne","([^\n]*)\n");
-        param.setValue("rxVarNb","([a-zA-Z]{1}[a-zA-Z0-9_]*)(?: ?= ?([()0-9+\\-/.,*a-zA-Z _]+|([a-zA-Z]{1}[a-zA-Z0-9_]*) ?\\[([()0-9+\\-/.,*a-zA-Z _]+)\\])| est[ _]un[ _]nombre) *#!\\?F_LN");
-        param.setValue("rxVarTx","([a-zA-Z]{1}[a-zA-Z0-9_]*)(?: ?= ?((?:\"[^\"]*\"|[a-zA-Z]{1}[a-zA-Z0-9_]*)(?: ?\\+ ?(?:\"[^\"]*\"|[a-zA-Z]{1}[a-zA-Z0-9_]*))*)+| est[ _]une[ _]cha[îi]ne) *#!\\?F_LN");
-        param.setValue("rxVarLs","([a-zA-Z]{1}[a-zA-Z0-9_]*)(?: est[ _]une[ _]liste ?| ?\\[ ?\\]) *#!\\?F_LN");
+        param.setValue("rxVarNb","[\t ]*([a-zA-Z]{1}[a-zA-Z0-9_]*)(?: ?= ?([()0-9+\\-/.,*a-zA-Z _]+|([a-zA-Z]{1}[a-zA-Z0-9_]*) ?\\[([()0-9+\\-/.,*a-zA-Z _]+)\\])| est[ _]un[ _]nombre) *#!\\?F_LN");
+        param.setValue("rxVarTx","[\t ]*([a-zA-Z]{1}[a-zA-Z0-9_]*)(?: ?= ?((?:\"[^\"]*\"|[a-zA-Z]{1}[a-zA-Z0-9_]*)(?: ?\\+ ?(?:\"[^\"]*\"|[a-zA-Z]{1}[a-zA-Z0-9_]*))*)+| est[ _]une[ _]cha[îi]ne) *#!\\?F_LN");
+        param.setValue("rxVarLs","[\t ]*([a-zA-Z]{1}[a-zA-Z0-9_]*)(?: est[ _]une[ _]liste ?| ?\\[ ?\\]) *#!\\?F_LN");
         param.setValue("rxModLs","([a-zA-Z]{1}[a-zA-Z0-9_]*) ?\\[([()0-9+\\-/.*a-zA-Z_]+)\\] ?= ?([^\n]+) *#!\\?F_LN");
         param.setValue("rxModOpSMM","([a-zA-Z]{1}[a-zA-Z0-9_]*) ?(\\<\\<|\\+=|-=|/=|\\*=|%=|\\+\\+|--) ?([()0-9+\\-/.,*a-zA-Z_ ]+|\"[^\"]*\")? *#!\\?F_LN");
         param.setValue("rxRecValLs","([a-zA-Z]{1}[a-zA-Z0-9_]*) ?\\[\\]");
@@ -222,6 +223,7 @@ void FenPrincipale::tester( bool executer )
     {
         if(executer)
         {
+            qDebug() << Lignes[i];
             if(QSettings().value("editeur/masqListeVar",true).toBool())
                 actionSaisieAssistee->setChecked(false);
 
@@ -415,13 +417,14 @@ void FenPrincipale::tester( bool executer )
                 }
             }
 
-            else if(defVarTx(Lignes[i])) {}//Variables de type chaîne
-            else if(defVarLs(Lignes[i])){}  //Variables de type liste
-            else if(defVarNb(Lignes[i])){}   //Variables numériques
+
             else if(modVarOpSurSoisMeme(Lignes[i])){} //Opération sur soi-meme
             else if(modListe(Lignes[i],true)){}  //Modifications d'une valeur d'une liste
             else if(modSaisie(Lignes[i])){}      //Saisie d'une valeur
             else if(affVal(Lignes[i])){} //Affichage d'une valeur
+            else if(defVarTx(Lignes[i])) {}//Variables de type chaîne
+            else if(defVarLs(Lignes[i])){}  //Variables de type liste
+            else if(defVarNb(Lignes[i])){}   //Variables numériques
 
         }
         else
@@ -687,6 +690,8 @@ bool FenPrincipale::defVarNb(QString ligne)
     {
         if(rxNbVar.capturedTexts()[1] == "")
         {
+            qDebug() << "Pas de variable numérique à modifier"
+                     <<"\n\t" << rxNbVar.capturedTexts()[0] << "( "<< ligne <<") var " << rxNbVar.capturedTexts()[1] << " val " << rxNbVar.capturedTexts()[2];
             return false;
         }
         else if(NbVar.contains(rxNbVar.capturedTexts().at(1))) // Si la variable existe déjà...
