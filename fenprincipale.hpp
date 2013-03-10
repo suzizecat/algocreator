@@ -83,6 +83,9 @@ protected:
     int derLigne;
     int derIndex;
     bool verrPositionCurseur;
+    bool verrTestPasAPas;
+
+
 
     QString retirerGuillemets(QString);
     QString execOp(QString);
@@ -104,6 +107,13 @@ protected:
 
     int execCondition(QString);
     int execBoucle(QString);
+    void afficheVars();
+
+
+
+    enum{
+        MarkerPasAPas = 0
+    };
 
  public slots :
     void tester(bool executer = true);
@@ -115,6 +125,8 @@ protected:
     void affSaiAssistee(bool=true);
     void assisteSaisie(int);
     void positionCurseur(int,int);
+    void testerPasAPas(bool);
+    void pasSuivant();
 };
 
 #endif // FENRINCIPALE_H

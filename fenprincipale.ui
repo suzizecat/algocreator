@@ -28,7 +28,21 @@
        </widget>
       </item>
       <item>
-       <layout class="QHBoxLayout" name="horizontalLayout">
+       <layout class="QHBoxLayout" name="boutonsTestPasAPas">
+        <property name="topMargin">
+         <number>0</number>
+        </property>
+        <item>
+         <widget class="QPushButton" name="testLigneSuivante">
+          <property name="text">
+           <string>Ligne suivante</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="boutonsClassiques">
         <item>
          <widget class="QPushButton" name="bt_tester">
           <property name="text">
@@ -188,6 +202,7 @@
     <addaction name="actionToutEffacer"/>
     <addaction name="separator"/>
     <addaction name="actionTester"/>
+    <addaction name="actionTestPasAPas"/>
     <addaction name="actionSaisieAssistee"/>
    </widget>
    <addaction name="menuMenu"/>
@@ -206,6 +221,7 @@
    <addaction name="actionImprimer"/>
    <addaction name="separator"/>
    <addaction name="actionToutEffacer"/>
+   <addaction name="actionTestPasAPas"/>
    <addaction name="actionTester"/>
    <addaction name="separator"/>
    <addaction name="actionSaisieAssistee"/>
@@ -327,6 +343,18 @@
    </property>
    <property name="text">
     <string>Imprimer</string>
+   </property>
+  </action>
+  <action name="actionTestPasAPas">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="ressources.qrc">
+     <normaloff>:/images/debugger</normaloff>:/images/debugger</iconset>
+   </property>
+   <property name="text">
+    <string>Tester pas à pas</string>
    </property>
   </action>
  </widget>

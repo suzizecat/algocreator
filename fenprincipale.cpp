@@ -77,8 +77,11 @@ FenPrincipale::FenPrincipale(QMainWindow *parent) : QMainWindow(parent)
     chemin_fichier = "";
 
 
+
     updateOptions();
 
+
+    zoneTexte->markerDefine(QPixmap(":/images/lignePasAPas"),MarkerPasAPas);
     qDebug()<< "Connection slots/signaux ...";
 
     affSaiAssistee(false);
@@ -97,7 +100,11 @@ FenPrincipale::FenPrincipale(QMainWindow *parent) : QMainWindow(parent)
     connect(zoneTexte,SIGNAL(cursorPositionChanged(int,int)),this,SLOT(positionCurseur(int,int)));
 
     connect(btnsSaiAssist,SIGNAL(buttonClicked(int)), this, SLOT(assisteSaisie(int)));
+    connect(actionTestPasAPas,SIGNAL(toggled(bool)),this,SLOT(testerPasAPas(bool)));
+    connect(testLigneSuivante,SIGNAL(clicked()),this,SLOT(pasSuivant()));
     nouveau();
+
+
 
 }
 
@@ -128,7 +135,6 @@ void FenPrincipale::tester( bool executer )
     QList<bool> dansBoucle2;
     QList<bool> dansCondition;
     int numBoucle = 0;
-
 
 
     qDebug()<<"Recuperation de l'algo...";
@@ -221,6 +227,7 @@ void FenPrincipale::tester( bool executer )
     //Lancement du test réel
     for (int i=0; i<Lignes.length();i++)
     {
+
         if(executer)
         {
             qDebug() << Lignes[i];
@@ -435,9 +442,13 @@ void FenPrincipale::tester( bool executer )
         }
     }
 
+    afficheVars();
+}
+
+void FenPrincipale::afficheVars()
+{
     for (int i = 1 ; i < NbVar.size() ; i++)
     {
-        qDebug() << i;
         affListeVar->addItem(QString("NOMBRE " + NbVar.at(i) + " = " + NbVal.at(i).toString()));
     }
     for (int i = 0 ; i < TxVar.size() ; i++)
@@ -1918,4 +1929,20 @@ void FenPrincipale::updateOptions()
           <<"\n\tUtilisation des tabulation pour l'indentation : " << zoneTexte->indentationsUseTabs()
          <<"\n\tAuto indentation : " << zoneTexte->autoIndent()
         <<"\n\tLargeur des tabulations : "<< zoneTexte->tabWidth();
+}
+
+void FenPrincipale::testerPasAPas(bool etat)
+{
+    /*boutonsClassiques->setVisible(! etat);
+    boutonsTestPasAPas->setVisible(etat);*/
+    verrTestPasAPas = etat;
+
+    if(etat)
+        tester(true);
+
+}
+
+void FenPrincipale::pasSuivant()
+{
+    verrTestPasAPas = false;
 }
